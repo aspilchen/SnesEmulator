@@ -6,7 +6,7 @@
 # "OpCode", "Args", "Proper Name", "HEX", "Addressing Mode", "Flags Set", "Bytes", "Cycles"
 
 
-# Table pulled from https://wiki.superfamicom.org/65816-reference#footnote-definition-11
+# Table pulled from https://wiki.superfamicom.org/65816-reference
 ops = [
 ["ADC", "(dp,X)", "Add With Carry", "61", "DP Indexed Indirect,X", "NV----ZC", "2", "6[1][2]"],
 ["ADC", "sr,S", "Add With Carry", "63", "Stack Relative", "NV----ZC", "2", "4[1]"],
@@ -266,36 +266,74 @@ ops = [
 ["XCE", "", "Exchange Carry and Emulation Flags", "FB", "Implied", "--MX---CE", "1", "2"]]
 
 
-# sort table by op. hex value
-ops.sort(key=lambda x: x[3])
 
-# used to prevent duplicate OpCode enums
-opCounts = {i[0]:0 for i in ops}
+def includeGaurdBegin():
+    print("#ifndef ISA_HPP")
+    print("#define ISA_HPP")
+    print()
 
-print("#ifndef ISA_HPP")
-print("#define ISA_HPP")
-print("# include<vector>")
-print()
-print("namespace snes {")
-print("typedef enum {")
+def generateIncludes():
+    print("# include<vector>")
+    print()
 
-for i in ops:
-    print("    {}{},    // {}".format(i[0], opCounts[i[0]], i[2]))
-    opCounts[i[0]] += 1
 
-print("} OpCode;")
-print()
-print("const std::vector<int> INSTRUCTION_SIZES = {")
-print("    ", end='')
+def nameSpaceBegin():
+    print("namespace snes {")
 
-for i, o in enumerate(ops):
-    print("{},".format(o[6][0]), end='')
-    if (i + 1) % 20 == 0:
-        print()
-        print("    ", end='')
 
-print()
-print("};")
-print("}")
-print()
-print("#endif")
+def generateIsaEnum():
+    opCounts = {i[0]:0 for i in ops}
+    print("typedef enum {")
+    for i in sorted(ops, key=lambda x:x[3]):
+        print("    {}{},    // {}".format(i[0], opCounts[i[0]], i[2]))
+        opCounts[i[0]] += 1
+    print("} OpCode;")
+    print()
+
+
+def generateIsaSizeTable():
+    print("const std::vector<int> INSTRUCTION_SIZES = {")
+    print("    ", end='')
+    for i, o in enumerate(sorted(ops, key=lambda x: x[3])):
+        print("{},".format(o[6][0]), end='')
+        if (i + 1) % 20 == 0:
+            print()
+            print("    ", end='')
+    print()
+    print("};")
+    print()
+
+
+# Using big switch for now.. Seems like the easiest way to start.
+# Alternative is to build a function or class for each instruction, potentially tedious.
+def generateDecodeSwitch():
+    opCounts = {i[0]:0 for i in ops}
+    # just do ADC ops to start
+    print("switch() {")
+    for i in ops[0:14]:
+        print("case {}{}:  // {}".format(i[0], opCounts[i[0]], i[4]))
+        print("    break;")
+        opCounts[i[0]] += 1
+    print("default:")
+    print("    break;")
+    print("}")
+    print()
+
+def nameSpaceEnd():
+    print("}")
+    print()
+
+def includeGaurdEnd():
+    print("#endif", end='')
+
+
+
+# includeGaurdBegin()
+# generateIncludes()
+# nameSpaceBegin()
+# generateIsaEnum()
+# generateIsaSizeTable()
+# nameSpaceEnd()
+# includeGaurdEnd()
+
+generateDecodeSwitch()

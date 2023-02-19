@@ -1,5 +1,6 @@
 #ifndef ISA_HPP
 #define ISA_HPP
+
 # include<vector>
 
 namespace snes {
@@ -277,6 +278,7 @@ const std::vector<int> INSTRUCTION_SIZES = {
     3,3,3,4,2,2,2,2,2,2,2,2,1,2,1,1,3,3,3,4,
     2,2,2,2,3,2,2,2,1,3,1,1,3,3,3,4,
 };
+
 }
 
 #endif
