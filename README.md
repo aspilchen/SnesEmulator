@@ -8,6 +8,9 @@ don't know how this will perform in reality, but it will be a neat experiment.
 Optimization will come last (if needed) once things actually work.
 
 # Some things to do
+- IMPORTANT!!! Set up CPU status register (P registert) to start handling different modes
+	- Modes affect things like 8bit/16bit mode, changing the behaviour of many instructions
+	- Don't implement too far ahead without handling this, otherwise it's more to change later
 - Create a memory map to store the SNES game data, and map SNES addresses to real addresses
 	- Mapper has to determine ROM memory type (HiRom, LowRom etc..) and find header to provide reset vector
 - Successfully simulate booting a game
