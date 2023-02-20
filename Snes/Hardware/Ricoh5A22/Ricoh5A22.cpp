@@ -30,9 +30,19 @@ namespace snes {
 
 Ricoh5A22::Ricoh5A22(void) : isRunning(false) {}
 
-//    void Ricoh5A22::attachClock(SysClock &clk) {
-//		clockObserver = clk.getObserver();
-//	}
+// void Ricoh5A22::setClockSync(std::function<void(void)> clockSyncFunctor) {
+//     clockSync = clockSyncFunctor;
+// }
+
+void Ricoh5A22::setStatusFlags(uint8_t bitFlags) {
+    p |= bitFlags;
+}
+
+void Ricoh5A22::clearStatusFlags(uint8_t bitFlags) {
+    p &= ~bitFlags;
+}
+
+uint8_t Ricoh5A22::getProcessorStatus(void) { return p; }
 
 void Ricoh5A22::start(void) {
     if (isRunning) {
@@ -63,12 +73,12 @@ void Ricoh5A22::fetch(void) {
 }
 
 void Ricoh5A22::decode(void) {
-    std::cout << "decode\n"; // Temporary
+    std::cout << "decode\n";  // Temporary
     currStage = CpuStage::EXECUTE;
 }
 
 void Ricoh5A22::execute(void) {
-    std::cout << "execute\n"; // Temporary
+    std::cout << "execute\n";  // Temporary
     currStage = CpuStage::FETCH;
 }
 

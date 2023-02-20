@@ -1,0 +1,3 @@
+add_executable(testRicoh5A22 TestRicoh5A22.cpp)
+target_compile_features(testRicoh5A22 PRIVATE cxx_std_17)
+target_link_libraries(testRicoh5A22 PRIVATE hardware)
