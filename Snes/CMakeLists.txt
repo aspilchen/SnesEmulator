@@ -5,5 +5,4 @@ project(SNESEmulator VERSION 1.0
                   DESCRIPTION "Emulator for the SNES"
                   LANGUAGES CXX)
 
-add_subdirectory(Hardware)
-add_subdirectory(Test)
+# add_subdirectory(Test)
