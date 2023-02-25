@@ -10,15 +10,15 @@
  * Emulates the SNES CPU. The fetch-decode-execute cycle will run in its own
  * thread managed by this class. For now this will hold a mutex to lock the
  * thread at the beginning of each cycle. Calling the "cycle()" method will
- * unlock the mutex, causing the thread to execute one cycle. This is used to
- * simulate the system timing, an external clock can control the speed of the
- * system. There is a skeleton in place to use a conditional_variable that
- * allows one call from the clock to signal all waiting threads. However that
- * will require the clock to be more fleshed out and running on its own thread
- * as well, and the program must be terminated in a specific order with the
- * clock last to prevent deadlocks. So for now, the cycle will be used to keep
- * it simple.
+ * unlock the mutex, causing the thread to execute one cycle.
  *
+ * There is a list of how many cycles each instruction should take. At some
+ * point I will add a clock feature that counts at the SNES speed of 3.58 MHz
+ * to 1.79 MHz.
+ *
+ * A counter will be set during the fetch stage that will count down at the SNES
+ * speed. The host computer will process everything and then wait on the counter
+ * to finish before completing the instruction.
  *
  */
 
@@ -28,21 +28,7 @@
 
 namespace snes {
 
-Ricoh5A22::Ricoh5A22(void) : isRunning(false) {}
-
-// void Ricoh5A22::setClockSync(std::function<void(void)> clockSyncFunctor) {
-//     clockSync = clockSyncFunctor;
-// }
-
-void Ricoh5A22::setStatusFlags(uint8_t bitFlags) {
-    p |= bitFlags;
-}
-
-void Ricoh5A22::clearStatusFlags(uint8_t bitFlags) {
-    p &= ~bitFlags;
-}
-
-uint8_t Ricoh5A22::getProcessorStatus(void) { return p; }
+Ricoh5A22::Ricoh5A22(void) : isRunning(false), {}
 
 void Ricoh5A22::start(void) {
     if (isRunning) {
@@ -69,11 +55,6 @@ void Ricoh5A22::cycle(void) { mutex.unlock(); }
 
 void Ricoh5A22::fetch(void) {
     std::cout << "fetch\n";  // Temporary
-    currStage = CpuStage::DECODE;
-}
-
-void Ricoh5A22::decode(void) {
-    std::cout << "decode\n";  // Temporary
     currStage = CpuStage::EXECUTE;
 }
 
