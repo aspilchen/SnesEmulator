@@ -1,14 +1,14 @@
-#ifndef CPU_REGISTERS_HPP
-#define CPU_REGISTERS_HPP
+#ifndef CPU_DATA_HPP
+#define CPU_DATA_HPP
 
 #include <cstdint>
 #include <vector>
 
 namespace snes {
-class CpuRegisters {
+class CpuData {
    public:
     
-    CpuRegisters(void) = default;
+    CpuData(void) = default;
 
     enum StatusFlag {
         N = 1 << 7,  // #$80 10000000 Negative
@@ -67,9 +67,7 @@ class CpuRegisters {
 
     uint16_t mbr; // Holds fetched data, or data waiting to be written
 
-    std::vector<uint8_t> cir; // Current instruction to be executed
-
-    int instructionSize; // Holds size of current instruction in bytes
+    std::vector<uint8_t> rom;
 };
 }  // namespace snes
 

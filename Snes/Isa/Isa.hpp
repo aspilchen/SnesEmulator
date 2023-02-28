@@ -14,7 +14,7 @@ namespace snes {
 const int MAX_INSTRUCTION_SIZE = 4;
 const int BYTE_IN_BITS = 8;
 
-inline uint32_t FETCH_ARG_FROM_ROM(ProgramCounter start, ProgramCounter end) {
+inline uint32_t FETCH_IMMEDIATE(ProgramCounter start, ProgramCounter end) {
     uint32_t result = *start;
     start++;
     while (start != end) {

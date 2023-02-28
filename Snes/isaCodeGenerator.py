@@ -1,49 +1,229 @@
-import os
+# There are 256 instructions, many with the same general type (addition, subtraction, etc) and different address modes.
+# I want to automate as much of c++ programming as possible from here.
+#
+# C++ code will use a table to map OpCodes to function objects. This file contains scripts to generate
+# the C++ code for each instruction based on their descriptions from an online source. As well as the 
+# OpCode enum, and the table to map OpCodes to instructions.
+# 
+# I may attempt another solution using C++ classes for each general instruction type (add, subtract, etc),
+# and a class for each memory address mode. And use a table to choose the appropriate classes. However, I believe
+# the current approach to be the more efficient and simpler solution.
 
-CWD = os.getcwd()
-OUTPUT_DIR = os.path.join(CWD, "ISA")
-ISA_INCLUDES_FILE = os.path.join(OUTPUT_DIR, "ISA.hpp")
-BASE_CLASS = "BaseInstruction"
 
-def objectPath(className, extension):
-    return os.path.join(OUTPUT_DIR, className, className + extension)
+# === C++ types and variables ===
+
+ARG_TYPE = "uint32_t"
+ARG_NAME = "arg"
+
+SIZE_TYPE = "int"
+SIZE_NAME = "size"
+
+SYSTEM_DATA = "regs"
+REG_A = SYSTEM_DATA +  ".a"
+REG_X = SYSTEM_DATA +  ".x"
+REG_Y = SYSTEM_DATA +  ".y"
+REG_S = SYSTEM_DATA +  ".s"
+REG_DB = SYSTEM_DATA + ".db"
+REG_D = SYSTEM_DATA +  ".d"
+REG_P = SYSTEM_DATA +  ".p"
+REG_PC = SYSTEM_DATA + ".pc"
+
+P_FLAG = SYSTEM_DATA + "::StatusFlag::"
+FLAG_N = P_FLAG + "N"
+FLAG_V = P_FLAG + "V"
+FLAG_M = P_FLAG + "M"
+FLAG_X = P_FLAG + "X"
+FLAG_D = P_FLAG + "D"
+FLAG_I = P_FLAG + "I"
+FLAG_Z = P_FLAG + "Z"
+FLAG_C = P_FLAG + "C"
+FLAG_E = P_FLAG + "E"
+FLAG_B = P_FLAG + "B"
 
 
-ALU = "ARITHMETIC_LOGIC"
-LODSTR = "LOAD_STORE"
-TRANSFER = "TRANSFER"
-BRANCH = "BRANCH"
-JUMP = "JUMP"
-INTURRUPT = "INTURRUPT"
-P_FLAG = "P_FLAG"
-STACK = "STACK"
+# === CPP code to set status flags ===
+def CPP_SET_P(value):
+    return "{} |= {};".format(REG_P, value)
 
-instructionTypes = ["ARITHMATIC_LOGIC", "LOAD_STORE", "TRANSFER", "BRANCH", "JUMP", "INTURRUPT", "P_FLAG", "STACK", "BLOCK_MOVE", "RESERVED"]
 
-typeMap = {"ADC":ALU, "SBC":ALU, "AND":ALU, "EOR":ALU, "ORA":ALU, "TSB":ALU, "TRB":ALU, "ASL":ALU, "LSR":ALU, "ROL":ALU, "ROR":ALU, "BIT":ALU, "CMP":ALU, "CPX":ALU, "CPY":ALU, "DEA":ALU, "DEC":ALU, "DEX":ALU, "DEY":ALU, "INA":ALU, "INC":ALU, "INX":ALU, "INY":ALU, "NOP":ALU, "XBA":ALU,
-    "LDA":LODSTR, "LDX":LODSTR, "LDY":LODSTR, "STA":LODSTR, "STX":LODSTR, "STY":LODSTR, "STZ":LODSTR,
-    "TAX":TRANSFER, "TAY":TRANSFER, "TCD":TRANSFER, "TCS":TRANSFER, "TDC":TRANSFER, "TSC":TRANSFER, "TSX":TRANSFER, "TXA":TRANSFER, "TXS":TRANSFER, "TXY":TRANSFER, "TYA":TRANSFER, "TYX":TRANSFER,
-    "BCC":BRANCH, "BCS":BRANCH, "BNE":BRANCH, "BEQ":BRANCH, "BPL":BRANCH, "BMI":BRANCH, "BVC":BRANCH, "BVS":BRANCH, "BRA":BRANCH, "BRL":BRANCH,
-    "JMP":JUMP, "JML":JUMP, "JSR":JUMP, "JSL":JUMP, "RTS":JUMP, "RTL":JUMP,
-    "BRK":INTURRUPT, "COP":INTURRUPT, "RTI":INTURRUPT, "STP":INTURRUPT, "WAI":INTURRUPT,
-    "CLC":P_FLAG, "CLD":P_FLAG, "CLI":P_FLAG, "CLV":P_FLAG, "REP":P_FLAG, "SEC":P_FLAG, "SED":P_FLAG, "SEP":P_FLAG, "SEI":P_FLAG, "XCE":P_FLAG,
-    "PHA":STACK, "PHX":STACK, "PHY":STACK, "PHD":STACK, "PHB":STACK, "PHK":STACK, "PHP":STACK, "PEA":STACK, "PEI":STACK, "PER":STACK, "PLA":STACK, "PLX":STACK, "PLY":STACK, "PLP":STACK, "PLD":STACK, "PLB":STACK,
-    "WDM":"RESERVED",
-    "MVN":"BLOCK_MOVE", "MVP":"BLOCK_MOVE"
+def CPP_CLEAR_P(value):
+    return "{} &= ~{};".format(REG_P, value)
+
+
+# === CPP code to load and store values
+def CPP_LOAD_REG(reg, value):
+    return "{} = {};".format(reg, value)
+
+
+
+# === Instruction size rules ===
+def CPP_SIZE_RULE_12():
+    return "{} += !({} & {});".format(SIZE_NAME, REG_P, FLAG_M)
+
+def CPP_SIZE_RULE_14():
+    return "{} += !({} & {});".format(SIZE_NAME, REG_P, FLAG_X)
+
+SIZE_RULES = {"[12]":CPP_SIZE_RULE_12(),
+              "[14]":CPP_SIZE_RULE_14()}
+
+
+# === Address mode rules ===
+
+# Arg is constant value
+def CPP_FETCH_IMMEDIATE():
+    dest = ARG_TYPE + " " + ARG_NAME
+    start = REG_PC + "+1"
+    end = REG_PC + " + " + SIZE_NAME
+    src = "FETCH_IMMEDIATE({}, {})".format(start, end)
+    return "{} = {}".format(dest, src)
+
+
+def CPP_FETCH_DIRECT_PAGE(arg):
+    return "// Not implemented"
+
+
+# No arg
+def CPP_FETCH_IMPLIED():
+    return ""
+
+
+ADDRESS_RULES = {"Immediate": CPP_FETCH_IMMEDIATE(),
+                 "Implied":CPP_FETCH_IMPLIED(),
+                 "Direct page":CPP_FETCH_DIRECT_PAGE()}
+
+# === Execution rules ===
+# = Arithmatic =
+# Many of these can be performed directly on RAM.
+# Extra care will need to be taken to determine the right source/dest.
+
+def CPP_ADD_EQ(left, right):
+    return "{} += {};".format(left, right)
+
+
+def CPP_SUBTRACT_EQ(left, right):
+    return "{} -= {};".format(left, right)
+
+
+def CPP_AND_EQ(left, right):
+    return "{} &= {};".format(left, right)
+
+
+# The actions each instruction performs
+EXECUTION_RULE = {
+    # Arithmatic
+    "ADC": CPP_ADD_EQ(REG_A, ARG_NAME) + "    // Temporary, will handle carry later",
+    "SBC": CPP_SUBTRACT_EQ(REG_A, ARG_NAME) + "    // Temporary, will handle carry later",
+    "AND":"regs.a &= arg;",
+    "ORA":"regs.a |= arg;",
+        "TSB":"// Test and set bits",
+        "TRB":"// Test and reset bits",
+        "ASL":"// Arithmetic shift left",
+        "LSR":"// Logical shift right",
+        "ROL":"// Rotate left",
+        "ROR":"// Rotate right",
+        "BIT":"// test bits, setting immediate value or address",
+        "CMP":"// Compare accumulator with memory",
+        "CPX":"// Compare register X with memory",
+        "CPY":"// Compare register Y with memory",
+        "DEA":"// Decrement Accumulator",
+        "DEC":"// Decrement",
+        "DEX":"// Decrement X register",
+        "DEY":"// Decrement Y register",
+        "INA":"// Increment Accumulator",
+        "INC":"// Increment",
+        "INX":"// Increment X register",
+        "INY":"// Increment Y register",
+    "DEX":"regs.x--;",
+    "DEY":"regs.t--;",
+    "INA":"regs.a++;",
+        "INC":"// Increment",
+    "INX":"regs.x++;",
+    "INY":"regs.y++;",
+        "NOP":"// No operation",
+        "XBA":"// Exchange bytes of accumulator",
+
+    # Load and store
+    "LDA":"regs.a = arg; // change to handle size mode later",
+    "LDX":"regs.x = arg; // change to handle size mode later",
+    "LDY":"regs.y = arg; // change to handle size mode later",
+        "STA":"// Store accumulator in memory",
+        "STX":"// Store register X in memory",
+        "STY":"// Store register Y in memory",
+        "STZ":"// Store zero in memory",
+
+    # Transfer instructions
+        "TAX":"// Transfer Accumulator to index register X",
+        "TAY":"// Transfer Accumulator to index register Y",
+        "TCD":"// Transfer 16-bit Accumulator to Direct Page register",
+        "TCS":"// Transfer 16-bit Accumulator to Stack Pointer",
+        "TDC":"// Transfer Direct Page register to 16-bit Accumulator",
+        "TSC":"// Transfer Stack Pointer to 16-bit Accumulator",
+        "TSX":"// Transfer Stack Pointer to index register X",
+        "TXA":"// Transfer index register X to Accumulator",
+        "TXS":"// Transfer index register X to Stack Pointer",
+        "TXY":"// Transfer index register X to index register Y",
+        "TYA":"// Transfer index register Y to Accumulator",
+        "TYX":"// Transfer index register Y to index register X",
+
+    # Branch instructions
+        "BCC":"// Branch if Carry flag is clear (C=0)",
+        "BCS":"// Branch if Carry flag is set (C=1)",
+        "BNE":"// Branch if not equal (Z=0)",
+        "BEQ":"// Branch if equal (Z=1)",
+        "BPL":"// Branch if plus (N=0)",
+        "BMI":"// Branch if minus (N=1)",
+        "BVC":"// Branch if overflow flag is clear (V=0)",
+        "BVS":"// Branch if overflow flag is set (V=1)",
+        "BRA":"// Branch Always (unconditional)",
+        "BRL":"// Branch Always Long (unconditional)",
+
+    # Jump and call instructions
+        "JMP":"// Jump",
+        "JML":"// Jump long",
+        "JSR":"// Jump and save return address",
+        "JSL":"// Jump long and save return address",
+        "RTS":"// Return from subroutine",
+        "RTL":"// Return long from subroutine",
+
+    # Inturrupt instructions
+        "BRK":"// Generate software interrupt",
+        "COP":"// Generate coprocessor interrupt",
+        "RTI":"// Return from interrupt",
+        "STP":"// Stop processor until RESET",
+        "WAI":"// Wait for hardware interrupt ",
+
+    # P-flag instructions
+    "CLC":"regs.r &= ~CpuData.StatusFlag.C;",
+    "CLD":"regs.r &= ~CpuData.StatusFlag.D;",
+    "CLI":"regs.r &= ~CpuData.StatusFlag.I;",
+    "CLV":"regs.r &= ~CpuData.StatusFlag.V;",
+    "REP":"regs.r &= !arg;",
+    "SEC":"regs.r |= CpuData.StatusFlag.C;",
+    "SED":"regs.r |= CpuData.StatusFlag.D;",
+    "SEP":"regs.r |= arg;",
+    "SEI":"regs.r |= CpuData.StatusFlag.I;",
+        "XCE":"// Exchange carry flag with emulation flag ",
+
+    # Stack instructions
+        "PHA":"// Push Accumulator",
+        "PHX":"// Push index register X",
+        "PHY":"// Push index register Y",
+        "PHD":"// Push direct page register",
+        "PHB":"// Push data bank register",
+        "PHK":"// Push Program Bank Register",
+        "PHP":"// Push processor status",
+        "PEA":"// Push effective address",
+        "PEI":"// Push effective indirect address",
+        "PER":"// Push effective relative address",
+        "PLA":"// Pull Accumulator 	Pull instructions",
+        "PLX":"// Pull index register X",
+        "PLY":"// Pull index register Y",
+        "PLP":"// Pull processor status",
+        "PLD":"// Pull direct page register",
+        "PLB":"// Pull data bank register"
 }
 
-SIZE_RULES = {"[12]":"+= !(regs.p & CpuRegisters::StatusFlag::M);",
-              "[14]":"+= !(regs.p & CpuRegisters::StatusFlag::X);"}
 
-
-
-ADDRESS_RULES = {"Immediate":"FETCH_ARG_FROM_ROM(regs.pc+1, regs.pc+size);"}
-
-EXECUTION_RULE = {"ADC":"regs.a += arg; // Temporary, will handle carry later"}
-
-
-addressModeEnum = "AddressingMode"
-addressingModes = ["NOT_IMPLEMENTED", "Immediate", "Implied"]
 
 
 
@@ -346,7 +526,7 @@ def generateOpCodeEnum(instructions):
 
 
 def generateOpFunction(i):
-    print("void " + i.name + "Func(CpuRegisters &regs) {")
+    print("void " + i.name + "Func(CpuData &regs) {")
     print("int numCycles = " + i.cycles[0] + "; // Implement variable cycle rules later")
     print("int size = " + i.size[0] + ";")
     for rule in SIZE_RULES:
