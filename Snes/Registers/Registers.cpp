@@ -1,4 +1,4 @@
-#include "CpuData.hpp"
+#include "Registers.hpp"
 
 namespace snes {
 

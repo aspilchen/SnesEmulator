@@ -1,28 +1,20 @@
 #ifndef ISA_HPP
 #define ISA_HPP
 
+#include <cstring>
 #include <array>
 #include <cstdint>
 #include <functional>
 
-#include "../CpuRegisters/CpuRegisters.hpp"
-#include "../Types/Types.hpp"
+#include "../SystemState/SystemState.hpp"
 
 // Removed from CPU to make testing easier
 namespace snes {
+using Instruction = std::function<void(SystemState&)>;
 
 const int MAX_INSTRUCTION_SIZE = 4;
 const int BYTE_IN_BITS = 8;
 
-inline uint32_t FETCH_IMMEDIATE(ProgramCounter start, ProgramCounter end) {
-    uint32_t result = *start;
-    start++;
-    while (start != end) {
-        result = (result << BYTE_IN_BITS) | *start;
-        start++;
-    }
-    return result;
-}
 
 enum OpCode { 
     BRK0, ORA0, COP0, ORA1, TSB0, ORA2, ASL0, ORA3, PHP0, ORA4, ASL1,
@@ -49,173 +41,248 @@ enum OpCode {
     XCE0, JSR2, SBC13, INC4, SBC14, NUM_OPS
 };
 
-void Brk0Func(CpuRegisters &regs); void Ora0Func(CpuRegisters &regs);
-void Cop0Func(CpuRegisters &regs); void Ora1Func(CpuRegisters &regs);
-void Tsb0Func(CpuRegisters &regs); void Ora2Func(CpuRegisters &regs);
-void Asl0Func(CpuRegisters &regs); void Ora3Func(CpuRegisters &regs);
-void Php0Func(CpuRegisters &regs); void Ora4Func(CpuRegisters &regs);
-void Asl1Func(CpuRegisters &regs); void Phd0Func(CpuRegisters &regs);
-void Tsb1Func(CpuRegisters &regs); void Ora5Func(CpuRegisters &regs);
-void Asl2Func(CpuRegisters &regs); void Ora6Func(CpuRegisters &regs);
-void Bpl0Func(CpuRegisters &regs); void Ora7Func(CpuRegisters &regs);
-void Ora8Func(CpuRegisters &regs); void Ora9Func(CpuRegisters &regs);
-void Trb0Func(CpuRegisters &regs); void Ora10Func(CpuRegisters &regs);
-void Asl3Func(CpuRegisters &regs); void Ora11Func(CpuRegisters &regs);
-void Clc0Func(CpuRegisters &regs); void Ora12Func(CpuRegisters &regs);
-void Inc0Func(CpuRegisters &regs); void Tcs0Func(CpuRegisters &regs);
-void Trb1Func(CpuRegisters &regs); void Ora13Func(CpuRegisters &regs);
-void Asl4Func(CpuRegisters &regs); void Ora14Func(CpuRegisters &regs);
-void Jsr0Func(CpuRegisters &regs); void And0Func(CpuRegisters &regs);
-void Jsr1Func(CpuRegisters &regs); void And1Func(CpuRegisters &regs);
-void Bit0Func(CpuRegisters &regs); void And2Func(CpuRegisters &regs);
-void Rol0Func(CpuRegisters &regs); void And3Func(CpuRegisters &regs);
-void Plp0Func(CpuRegisters &regs); void And4Func(CpuRegisters &regs);
-void Rol1Func(CpuRegisters &regs); void Pld0Func(CpuRegisters &regs);
-void Bit1Func(CpuRegisters &regs); void And5Func(CpuRegisters &regs);
-void Rol2Func(CpuRegisters &regs); void And6Func(CpuRegisters &regs);
-void Bmi0Func(CpuRegisters &regs); void And7Func(CpuRegisters &regs);
-void And8Func(CpuRegisters &regs); void And9Func(CpuRegisters &regs);
-void Bit2Func(CpuRegisters &regs); void And10Func(CpuRegisters &regs);
-void Rol3Func(CpuRegisters &regs); void And11Func(CpuRegisters &regs);
-void Sec0Func(CpuRegisters &regs); void And12Func(CpuRegisters &regs);
-void Dec0Func(CpuRegisters &regs); void Tsc0Func(CpuRegisters &regs);
-void Bit3Func(CpuRegisters &regs); void And13Func(CpuRegisters &regs);
-void Rol4Func(CpuRegisters &regs); void And14Func(CpuRegisters &regs);
-void Rti0Func(CpuRegisters &regs); void Eor0Func(CpuRegisters &regs);
-void Wdm0Func(CpuRegisters &regs); void Eor1Func(CpuRegisters &regs);
-void Mvp0Func(CpuRegisters &regs); void Eor2Func(CpuRegisters &regs);
-void Lsr0Func(CpuRegisters &regs); void Eor3Func(CpuRegisters &regs);
-void Pha0Func(CpuRegisters &regs); void Eor4Func(CpuRegisters &regs);
-void Lsr1Func(CpuRegisters &regs); void Phk0Func(CpuRegisters &regs);
-void Jmp0Func(CpuRegisters &regs); void Eor5Func(CpuRegisters &regs);
-void Lsr2Func(CpuRegisters &regs); void Eor6Func(CpuRegisters &regs);
-void Bvc0Func(CpuRegisters &regs); void Eor7Func(CpuRegisters &regs);
-void Eor8Func(CpuRegisters &regs); void Eor9Func(CpuRegisters &regs);
-void Mvn0Func(CpuRegisters &regs); void Eor10Func(CpuRegisters &regs);
-void Lsr3Func(CpuRegisters &regs); void Eor11Func(CpuRegisters &regs);
-void Cli0Func(CpuRegisters &regs); void Eor12Func(CpuRegisters &regs);
-void Phy0Func(CpuRegisters &regs); void Tcd0Func(CpuRegisters &regs);
-void Jmp1Func(CpuRegisters &regs); void Eor13Func(CpuRegisters &regs);
-void Lsr4Func(CpuRegisters &regs); void Eor14Func(CpuRegisters &regs);
-void Rts0Func(CpuRegisters &regs); void Adc0Func(CpuRegisters &regs);
-void Per0Func(CpuRegisters &regs); void Adc1Func(CpuRegisters &regs);
-void Stz0Func(CpuRegisters &regs); void Adc2Func(CpuRegisters &regs);
-void Ror0Func(CpuRegisters &regs); void Adc3Func(CpuRegisters &regs);
-void Pla0Func(CpuRegisters &regs); void Adc4Func(CpuRegisters &regs);
-void Ror1Func(CpuRegisters &regs); void Rtl0Func(CpuRegisters &regs);
-void Jmp2Func(CpuRegisters &regs); void Adc5Func(CpuRegisters &regs);
-void Ror2Func(CpuRegisters &regs); void Adc6Func(CpuRegisters &regs);
-void Bvs0Func(CpuRegisters &regs); void Adc7Func(CpuRegisters &regs);
-void Adc8Func(CpuRegisters &regs); void Adc9Func(CpuRegisters &regs);
-void Stz1Func(CpuRegisters &regs); void Adc10Func(CpuRegisters &regs);
-void Ror3Func(CpuRegisters &regs); void Adc11Func(CpuRegisters &regs);
-void Sei0Func(CpuRegisters &regs); void Adc12Func(CpuRegisters &regs);
-void Ply0Func(CpuRegisters &regs); void Tdc0Func(CpuRegisters &regs);
-void Jmp3Func(CpuRegisters &regs); void Adc13Func(CpuRegisters &regs);
-void Ror4Func(CpuRegisters &regs); void Adc14Func(CpuRegisters &regs);
-void Bra0Func(CpuRegisters &regs); void Sta0Func(CpuRegisters &regs);
-void Brl0Func(CpuRegisters &regs); void Sta1Func(CpuRegisters &regs);
-void Sty0Func(CpuRegisters &regs); void Sta2Func(CpuRegisters &regs);
-void Stx0Func(CpuRegisters &regs); void Sta3Func(CpuRegisters &regs);
-void Dey0Func(CpuRegisters &regs); void Bit4Func(CpuRegisters &regs);
-void Txa0Func(CpuRegisters &regs); void Phb0Func(CpuRegisters &regs);
-void Sty1Func(CpuRegisters &regs); void Sta4Func(CpuRegisters &regs);
-void Stx1Func(CpuRegisters &regs); void Sta5Func(CpuRegisters &regs);
-void Bcc0Func(CpuRegisters &regs); void Sta6Func(CpuRegisters &regs);
-void Sta7Func(CpuRegisters &regs); void Sta8Func(CpuRegisters &regs);
-void Sty2Func(CpuRegisters &regs); void Sta9Func(CpuRegisters &regs);
-void Stx2Func(CpuRegisters &regs); void Sta10Func(CpuRegisters &regs);
-void Tya0Func(CpuRegisters &regs); void Sta11Func(CpuRegisters &regs);
-void Txs0Func(CpuRegisters &regs); void Txy0Func(CpuRegisters &regs);
-void Stz2Func(CpuRegisters &regs); void Sta12Func(CpuRegisters &regs);
-void Stz3Func(CpuRegisters &regs); void Sta13Func(CpuRegisters &regs);
-void Ldy0Func(CpuRegisters &regs); void Lda0Func(CpuRegisters &regs);
-void Ldx0Func(CpuRegisters &regs); void Lda1Func(CpuRegisters &regs);
-void Ldy1Func(CpuRegisters &regs); void Lda2Func(CpuRegisters &regs);
-void Ldx1Func(CpuRegisters &regs); void Lda3Func(CpuRegisters &regs);
-void Tay0Func(CpuRegisters &regs); void Lda4Func(CpuRegisters &regs);
-void Tax0Func(CpuRegisters &regs); void Plb0Func(CpuRegisters &regs);
-void Ldy2Func(CpuRegisters &regs); void Lda5Func(CpuRegisters &regs);
-void Ldx2Func(CpuRegisters &regs); void Lda6Func(CpuRegisters &regs);
-void Bcs0Func(CpuRegisters &regs); void Lda7Func(CpuRegisters &regs);
-void Lda8Func(CpuRegisters &regs); void Lda9Func(CpuRegisters &regs);
-void Ldy3Func(CpuRegisters &regs); void Lda10Func(CpuRegisters &regs);
-void Ldx3Func(CpuRegisters &regs); void Lda11Func(CpuRegisters &regs);
-void Clv0Func(CpuRegisters &regs); void Lda12Func(CpuRegisters &regs);
-void Tsx0Func(CpuRegisters &regs); void Tyx0Func(CpuRegisters &regs);
-void Ldy4Func(CpuRegisters &regs); void Lda13Func(CpuRegisters &regs);
-void Ldx4Func(CpuRegisters &regs); void Lda14Func(CpuRegisters &regs);
-void Cpy0Func(CpuRegisters &regs); void Cmp0Func(CpuRegisters &regs);
-void Rep0Func(CpuRegisters &regs); void Cmp1Func(CpuRegisters &regs);
-void Cpy1Func(CpuRegisters &regs); void Cmp2Func(CpuRegisters &regs);
-void Dec1Func(CpuRegisters &regs); void Cmp3Func(CpuRegisters &regs);
-void Iny0Func(CpuRegisters &regs); void Cmp4Func(CpuRegisters &regs);
-void Dex0Func(CpuRegisters &regs); void Wai0Func(CpuRegisters &regs);
-void Cpy2Func(CpuRegisters &regs); void Cmp5Func(CpuRegisters &regs);
-void Dec2Func(CpuRegisters &regs); void Cmp6Func(CpuRegisters &regs);
-void Bne0Func(CpuRegisters &regs); void Cmp7Func(CpuRegisters &regs);
-void Cmp8Func(CpuRegisters &regs); void Cmp9Func(CpuRegisters &regs);
-void Pei0Func(CpuRegisters &regs); void Cmp10Func(CpuRegisters &regs);
-void Dec3Func(CpuRegisters &regs); void Cmp11Func(CpuRegisters &regs);
-void Cld0Func(CpuRegisters &regs); void Cmp12Func(CpuRegisters &regs);
-void Phx0Func(CpuRegisters &regs); void Stp0Func(CpuRegisters &regs);
-void Jmp4Func(CpuRegisters &regs); void Cmp13Func(CpuRegisters &regs);
-void Dec4Func(CpuRegisters &regs); void Cmp14Func(CpuRegisters &regs);
-void Cpx0Func(CpuRegisters &regs); void Sbc0Func(CpuRegisters &regs);
-void Sep0Func(CpuRegisters &regs); void Sbc1Func(CpuRegisters &regs);
-void Cpx1Func(CpuRegisters &regs); void Sbc2Func(CpuRegisters &regs);
-void Inc1Func(CpuRegisters &regs); void Sbc3Func(CpuRegisters &regs);
-void Inx0Func(CpuRegisters &regs); void Sbc4Func(CpuRegisters &regs);
-void Nop0Func(CpuRegisters &regs); void Xba0Func(CpuRegisters &regs);
-void Cpx2Func(CpuRegisters &regs); void Sbc5Func(CpuRegisters &regs);
-void Inc2Func(CpuRegisters &regs); void Sbc6Func(CpuRegisters &regs);
-void Beq0Func(CpuRegisters &regs); void Sbc7Func(CpuRegisters &regs);
-void Sbc8Func(CpuRegisters &regs); void Sbc9Func(CpuRegisters &regs);
-void Pea0Func(CpuRegisters &regs); void Sbc10Func(CpuRegisters &regs);
-void Inc3Func(CpuRegisters &regs); void Sbc11Func(CpuRegisters &regs);
-void Sed0Func(CpuRegisters &regs); void Sbc12Func(CpuRegisters &regs);
-void Plx0Func(CpuRegisters &regs); void Xce0Func(CpuRegisters &regs);
-void Jsr2Func(CpuRegisters &regs); void Sbc13Func(CpuRegisters &regs);
-void Inc4Func(CpuRegisters &regs); void Sbc14Func(CpuRegisters &regs);
+// ---------- Addressing Functions ---------- //
 
-const std::array<Instruction, NUM_OPS> INSTRUCTION_TABLE{
-    Brk0Func,  Ora0Func,  Cop0Func,  Ora1Func,  Tsb0Func,  Ora2Func,  Asl0Func,
-    Ora3Func,  Php0Func,  Ora4Func,  Asl1Func,  Phd0Func,  Tsb1Func,  Ora5Func,
-    Asl2Func,  Ora6Func,  Bpl0Func,  Ora7Func,  Ora8Func,  Ora9Func,  Trb0Func,
-    Ora10Func, Asl3Func,  Ora11Func, Clc0Func,  Ora12Func, Inc0Func,  Tcs0Func,
-    Trb1Func,  Ora13Func, Asl4Func,  Ora14Func, Jsr0Func,  And0Func,  Jsr1Func,
-    And1Func,  Bit0Func,  And2Func,  Rol0Func,  And3Func,  Plp0Func,  And4Func,
-    Rol1Func,  Pld0Func,  Bit1Func,  And5Func,  Rol2Func,  And6Func,  Bmi0Func,
-    And7Func,  And8Func,  And9Func,  Bit2Func,  And10Func, Rol3Func,  And11Func,
-    Sec0Func,  And12Func, Dec0Func,  Tsc0Func,  Bit3Func,  And13Func, Rol4Func,
-    And14Func, Rti0Func,  Eor0Func,  Wdm0Func,  Eor1Func,  Mvp0Func,  Eor2Func,
-    Lsr0Func,  Eor3Func,  Pha0Func,  Eor4Func,  Lsr1Func,  Phk0Func,  Jmp0Func,
-    Eor5Func,  Lsr2Func,  Eor6Func,  Bvc0Func,  Eor7Func,  Eor8Func,  Eor9Func,
-    Mvn0Func,  Eor10Func, Lsr3Func,  Eor11Func, Cli0Func,  Eor12Func, Phy0Func,
-    Tcd0Func,  Jmp1Func,  Eor13Func, Lsr4Func,  Eor14Func, Rts0Func,  Adc0Func,
-    Per0Func,  Adc1Func,  Stz0Func,  Adc2Func,  Ror0Func,  Adc3Func,  Pla0Func,
-    Adc4Func,  Ror1Func,  Rtl0Func,  Jmp2Func,  Adc5Func,  Ror2Func,  Adc6Func,
-    Bvs0Func,  Adc7Func,  Adc8Func,  Adc9Func,  Stz1Func,  Adc10Func, Ror3Func,
-    Adc11Func, Sei0Func,  Adc12Func, Ply0Func,  Tdc0Func,  Jmp3Func,  Adc13Func,
-    Ror4Func,  Adc14Func, Bra0Func,  Sta0Func,  Brl0Func,  Sta1Func,  Sty0Func,
-    Sta2Func,  Stx0Func,  Sta3Func,  Dey0Func,  Bit4Func,  Txa0Func,  Phb0Func,
-    Sty1Func,  Sta4Func,  Stx1Func,  Sta5Func,  Bcc0Func,  Sta6Func,  Sta7Func,
-    Sta8Func,  Sty2Func,  Sta9Func,  Stx2Func,  Sta10Func, Tya0Func,  Sta11Func,
-    Txs0Func,  Txy0Func,  Stz2Func,  Sta12Func, Stz3Func,  Sta13Func, Ldy0Func,
-    Lda0Func,  Ldx0Func,  Lda1Func,  Ldy1Func,  Lda2Func,  Ldx1Func,  Lda3Func,
-    Tay0Func,  Lda4Func,  Tax0Func,  Plb0Func,  Ldy2Func,  Lda5Func,  Ldx2Func,
-    Lda6Func,  Bcs0Func,  Lda7Func,  Lda8Func,  Lda9Func,  Ldy3Func,  Lda10Func,
-    Ldx3Func,  Lda11Func, Clv0Func,  Lda12Func, Tsx0Func,  Tyx0Func,  Ldy4Func,
-    Lda13Func, Ldx4Func,  Lda14Func, Cpy0Func,  Cmp0Func,  Rep0Func,  Cmp1Func,
-    Cpy1Func,  Cmp2Func,  Dec1Func,  Cmp3Func,  Iny0Func,  Cmp4Func,  Dex0Func,
-    Wai0Func,  Cpy2Func,  Cmp5Func,  Dec2Func,  Cmp6Func,  Bne0Func,  Cmp7Func,
-    Cmp8Func,  Cmp9Func,  Pei0Func,  Cmp10Func, Dec3Func,  Cmp11Func, Cld0Func,
-    Cmp12Func, Phx0Func,  Stp0Func,  Jmp4Func,  Cmp13Func, Dec4Func,  Cmp14Func,
-    Cpx0Func,  Sbc0Func,  Sep0Func,  Sbc1Func,  Cpx1Func,  Sbc2Func,  Inc1Func,
-    Sbc3Func,  Inx0Func,  Sbc4Func,  Nop0Func,  Xba0Func,  Cpx2Func,  Sbc5Func,
-    Inc2Func,  Sbc6Func,  Beq0Func,  Sbc7Func,  Sbc8Func,  Sbc9Func,  Pea0Func,
-    Sbc10Func, Inc3Func,  Sbc11Func, Sed0Func,  Sbc12Func, Plx0Func,  Xce0Func,
-    Jsr2Func,  Sbc13Func, Inc4Func,  Sbc14Func};
-}  // namespace snes
+inline uint32_t addrImmediate(uint8_t *ptr, int size) {
+    uint32_t result = 0;
+    std::memcpy(&result, ptr, size);
+    return result;
+}
+
+inline uint32_t addrDP(uint8_t *ptr, SystemState &state) {
+    const int N_BYTES = 1;
+    return addrImmediate(ptr, N_BYTES) + state.registers.d;
+}
+
+inline uint32_t addrAbsolute(uint8_t *ptr, SystemState &state) {
+	const int N_BYTES = 2;
+	return (state.registers.dbr << N_BYTES * BYTE_IN_BITS) | addrImmediate(ptr, N_BYTES);
+}
+
+inline uint32_t addrAbsoluteLong(uint8_t *ptr, SystemState &state) {
+    const int N_BYTES = 3;
+	return addrImmediate(ptr, N_BYTES);
+}
+
+inline uint32_t addrDPIndirectIndexed(uint8_t *ptr, uint16_t &index, SystemState &state) {
+	uint32_t addr = addrDP(ptr, state);
+	return addrAbsolute(&(state.memMap.mem[addr]), state) + index;
+}
+
+inline uint32_t addrDPIndirectIndexedLong(uint8_t *ptr, uint16_t &index, SystemState &state) {
+	uint32_t addr = addrDP(ptr, state);
+	return addrAbsoluteLong(&(state.memMap.mem[addr]), state) + index;
+}
+
+inline uint32_t addrDPIndexed(uint8_t *ptr, uint16_t &index, SystemState &state) {
+	return addrDP(ptr, state) + index;
+}
+
+inline uint32_t addrDPIndexedIndirect(uint8_t *ptr, uint16_t &index, SystemState &state) {
+	uint32_t addr = addrDPIndexed(ptr, index, state);
+	return addrAbsolute(&(state.memMap.mem[addr]), state);
+}
+
+inline uint32_t addrAbsoluteIndexed(uint8_t *ptr, uint16_t &index, SystemState &state) {
+	return addrAbsolute(ptr, state) + index;
+}
+
+inline uint32_t addrAbsoluteLongIndexed(uint8_t *ptr, uint16_t &index, SystemState &state) {
+	return addrAbsoluteLong(ptr, state) + index;
+}
+
+inline uint32_t addrPCRelative(SystemState &state) {
+	const int N_BYTES = 1;
+	int8_t offset = static_cast<int8_t>(addrImmediate(&*state.registers.pc, N_BYTES));
+	return state.registers.pc + offset - state.memMap.mem.begin();
+}
+
+// ---------- Base Instructions ---------- //
+
+
+void adcBase(uint8_t *ptr, SystemState &state) {
+    uint16_t &p = state.registers.p;
+    uint16_t &a = state.registers.a;
+    const int sizeInBytes =  1 + !(p & Registers::M);
+    uint32_t arg = addrImmediate(ptr, sizeInBytes);
+    arg += a + ((p & Registers::C) > 0); // add with carry bit
+    p &= !Registers::C; // clear carry bit
+    p |= sizeInBytes == 1 ? arg > INT8_MAX : arg > INT16_MAX; // set carry bit if carry happens
+    a = arg;
+    state.registers.pc += sizeInBytes;
+}
+
+void sbcBase(uint8_t *ptr, SystemState &state) {
+    uint16_t &p = state.registers.p;
+    uint16_t &a = state.registers.a;
+    int sizeInBytes =  1 + !(p & Registers::M);
+    uint32_t arg = addrImmediate(ptr, sizeInBytes);
+    arg -= a + ((p & Registers::C) > 0); // add with carry bit
+    p &= !Registers::C; // clear carry bit
+    p |= sizeInBytes == 1 ? arg > INT8_MAX : arg > INT16_MAX; // set carry bit if carry happens
+    a = arg;   
+    state.registers.pc += sizeInBytes;
+}
+
+
+
+
+
+void adc0(SystemState &state);  void adc1(SystemState &state);
+void adc2(SystemState &state);  void adc3(SystemState &state);
+void adc4(SystemState &state);  void adc5(SystemState &state);
+void adc6(SystemState &state);  void adc7(SystemState &state);
+void adc8(SystemState &state);  void adc9(SystemState &state);
+void adc10(SystemState &state); void adc11(SystemState &state);
+void adc12(SystemState &state); void adc13(SystemState &state);
+void adc14(SystemState &state); void and0(SystemState &state);
+void and1(SystemState &state);  void and2(SystemState &state);
+void and3(SystemState &state);  void and4(SystemState &state);
+void and5(SystemState &state);  void and6(SystemState &state);
+void and7(SystemState &state);  void and8(SystemState &state);
+void and9(SystemState &state);  void and10(SystemState &state);
+void and11(SystemState &state); void and12(SystemState &state);
+void and13(SystemState &state); void and14(SystemState &state);
+void asl0(SystemState &state);  void asl1(SystemState &state);
+void asl2(SystemState &state);  void asl3(SystemState &state);
+void asl4(SystemState &state);  void bcc0(SystemState &state);
+void bcs0(SystemState &state);  void beq0(SystemState &state);
+void bit0(SystemState &state);  void bit1(SystemState &state);
+void bit2(SystemState &state);  void bit3(SystemState &state);
+void bit4(SystemState &state);  void bmi0(SystemState &state);
+void bne0(SystemState &state);  void bpl0(SystemState &state);
+void bra0(SystemState &state);  void brk0(SystemState &state);
+void brl0(SystemState &state);  void bvc0(SystemState &state);
+void bvs0(SystemState &state);  void clc0(SystemState &state);
+void cld0(SystemState &state);  void cli0(SystemState &state);
+void clv0(SystemState &state);  void cmp0(SystemState &state);
+void cmp1(SystemState &state);  void cmp2(SystemState &state);
+void cmp3(SystemState &state);  void cmp4(SystemState &state);
+void cmp5(SystemState &state);  void cmp6(SystemState &state);
+void cmp7(SystemState &state);  void cmp8(SystemState &state);
+void cmp9(SystemState &state);  void cmp10(SystemState &state);
+void cmp11(SystemState &state); void cmp12(SystemState &state);
+void cmp13(SystemState &state); void cmp14(SystemState &state);
+void cop0(SystemState &state);  void cpx0(SystemState &state);
+void cpx1(SystemState &state);  void cpx2(SystemState &state);
+void cpy0(SystemState &state);  void cpy1(SystemState &state);
+void cpy2(SystemState &state);  void dec0(SystemState &state);
+void dec1(SystemState &state);  void dec2(SystemState &state);
+void dec3(SystemState &state);  void dec4(SystemState &state);
+void dex0(SystemState &state);  void dey0(SystemState &state);
+void eor0(SystemState &state);  void eor1(SystemState &state);
+void eor2(SystemState &state);  void eor3(SystemState &state);
+void eor4(SystemState &state);  void eor5(SystemState &state);
+void eor6(SystemState &state);  void eor7(SystemState &state);
+void eor8(SystemState &state);  void eor9(SystemState &state);
+void eor10(SystemState &state); void eor11(SystemState &state);
+void eor12(SystemState &state); void eor13(SystemState &state);
+void eor14(SystemState &state); void inc0(SystemState &state);
+void inc1(SystemState &state);  void inc2(SystemState &state);
+void inc3(SystemState &state);  void inc4(SystemState &state);
+void inx0(SystemState &state);  void iny0(SystemState &state);
+void jmp0(SystemState &state);  void jmp1(SystemState &state);
+void jmp2(SystemState &state);  void jmp3(SystemState &state);
+void jmp4(SystemState &state);  void jsr0(SystemState &state);
+void jsr1(SystemState &state);  void jsr2(SystemState &state);
+void lda0(SystemState &state);  void lda1(SystemState &state);
+void lda2(SystemState &state);  void lda3(SystemState &state);
+void lda4(SystemState &state);  void lda5(SystemState &state);
+void lda6(SystemState &state);  void lda7(SystemState &state);
+void lda8(SystemState &state);  void lda9(SystemState &state);
+void lda10(SystemState &state); void lda11(SystemState &state);
+void lda12(SystemState &state); void lda13(SystemState &state);
+void lda14(SystemState &state); void ldx0(SystemState &state);
+void ldx1(SystemState &state);  void ldx2(SystemState &state);
+void ldx3(SystemState &state);  void ldx4(SystemState &state);
+void ldy0(SystemState &state);  void ldy1(SystemState &state);
+void ldy2(SystemState &state);  void ldy3(SystemState &state);
+void ldy4(SystemState &state);  void lsr0(SystemState &state);
+void lsr1(SystemState &state);  void lsr2(SystemState &state);
+void lsr3(SystemState &state);  void lsr4(SystemState &state);
+void mvn0(SystemState &state);  void mvp0(SystemState &state);
+void nop0(SystemState &state);  void ora0(SystemState &state);
+void ora1(SystemState &state);  void ora2(SystemState &state);
+void ora3(SystemState &state);  void ora4(SystemState &state);
+void ora5(SystemState &state);  void ora6(SystemState &state);
+void ora7(SystemState &state);  void ora8(SystemState &state);
+void ora9(SystemState &state);  void ora10(SystemState &state);
+void ora11(SystemState &state); void ora12(SystemState &state);
+void ora13(SystemState &state); void ora14(SystemState &state);
+void pea0(SystemState &state);  void pei0(SystemState &state);
+void per0(SystemState &state);  void pha0(SystemState &state);
+void phb0(SystemState &state);  void phd0(SystemState &state);
+void phk0(SystemState &state);  void php0(SystemState &state);
+void phx0(SystemState &state);  void phy0(SystemState &state);
+void pla0(SystemState &state);  void plb0(SystemState &state);
+void pld0(SystemState &state);  void plp0(SystemState &state);
+void plx0(SystemState &state);  void ply0(SystemState &state);
+void rep0(SystemState &state);  void rol0(SystemState &state);
+void rol1(SystemState &state);  void rol2(SystemState &state);
+void rol3(SystemState &state);  void rol4(SystemState &state);
+void ror0(SystemState &state);  void ror1(SystemState &state);
+void ror2(SystemState &state);  void ror3(SystemState &state);
+void ror4(SystemState &state);  void rti0(SystemState &state);
+void rtl0(SystemState &state);  void rts0(SystemState &state);
+void sbc0(SystemState &state);  void sbc1(SystemState &state);
+void sbc2(SystemState &state);  void sbc3(SystemState &state);
+void sbc4(SystemState &state);  void sbc5(SystemState &state);
+void sbc6(SystemState &state);  void sbc7(SystemState &state);
+void sbc8(SystemState &state);  void sbc9(SystemState &state);
+void sbc10(SystemState &state); void sbc11(SystemState &state);
+void sbc12(SystemState &state); void sbc13(SystemState &state);
+void sbc14(SystemState &state); void sec0(SystemState &state);
+void sed0(SystemState &state);  void sei0(SystemState &state);
+void sep0(SystemState &state);  void sta0(SystemState &state);
+void sta1(SystemState &state);  void sta2(SystemState &state);
+void sta3(SystemState &state);  void sta4(SystemState &state);
+void sta5(SystemState &state);  void sta6(SystemState &state);
+void sta7(SystemState &state);  void sta8(SystemState &state);
+void sta9(SystemState &state);  void sta10(SystemState &state);
+void sta11(SystemState &state); void sta12(SystemState &state);
+void sta13(SystemState &state); void stp0(SystemState &state);
+void stx0(SystemState &state);  void stx1(SystemState &state);
+void stx2(SystemState &state);  void sty0(SystemState &state);
+void sty1(SystemState &state);  void sty2(SystemState &state);
+void stz0(SystemState &state);  void stz1(SystemState &state);
+void stz2(SystemState &state);  void stz3(SystemState &state);
+void tax0(SystemState &state);  void tay0(SystemState &state);
+void tcd0(SystemState &state);  void tcs0(SystemState &state);
+void tdc0(SystemState &state);  void trb0(SystemState &state);
+void trb1(SystemState &state);  void tsb0(SystemState &state);
+void tsb1(SystemState &state);  void tsc0(SystemState &state);
+void tsx0(SystemState &state);  void txa0(SystemState &state);
+void txs0(SystemState &state);  void txy0(SystemState &state);
+void tya0(SystemState &state);  void tyx0(SystemState &state);
+void wai0(SystemState &state);  void wdm0(SystemState &state);
+void xba0(SystemState &state);  void xce0(SystemState &state);
+
+const std::array<Instruction, NUM_OPS> DISPATCH_TABLE = {
+    brk0,  ora0,  cop0,  ora1,  tsb0,  ora2,  asl0,  ora3,  php0,  ora4,  asl1,
+    phd0,  tsb1,  ora5,  asl2,  ora6,  bpl0,  ora7,  ora8,  ora9,  trb0,  ora10,
+    asl3,  ora11, clc0,  ora12, inc0,  tcs0,  trb1,  ora13, asl4,  ora14, jsr0,
+    and0,  jsr1,  and1,  bit0,  and2,  rol0,  and3,  plp0,  and4,  rol1,  pld0,
+    bit1,  and5,  rol2,  and6,  bmi0,  and7,  and8,  and9,  bit2,  and10, rol3,
+    and11, sec0,  and12, dec0,  tsc0,  bit3,  and13, rol4,  and14, rti0,  eor0,
+    wdm0,  eor1,  mvp0,  eor2,  lsr0,  eor3,  pha0,  eor4,  lsr1,  phk0,  jmp0,
+    eor5,  lsr2,  eor6,  bvc0,  eor7,  eor8,  eor9,  mvn0,  eor10, lsr3,  eor11,
+    cli0,  eor12, phy0,  tcd0,  jmp1,  eor13, lsr4,  eor14, rts0,  adc0,  per0,
+    adc1,  stz0,  adc2,  ror0,  adc3,  pla0,  adc4,  ror1,  rtl0,  jmp2,  adc5,
+    ror2,  adc6,  bvs0,  adc7,  adc8,  adc9,  stz1,  adc10, ror3,  adc11, sei0,
+    adc12, ply0,  tdc0,  jmp3,  adc13, ror4,  adc14, bra0,  sta0,  brl0,  sta1,
+    sty0,  sta2,  stx0,  sta3,  dey0,  bit4,  txa0,  phb0,  sty1,  sta4,  stx1,
+    sta5,  bcc0,  sta6,  sta7,  sta8,  sty2,  sta9,  stx2,  sta10, tya0,  sta11,
+    txs0,  txy0,  stz2,  sta12, stz3,  sta13, ldy0,  lda0,  ldx0,  lda1,  ldy1,
+    lda2,  ldx1,  lda3,  tay0,  lda4,  tax0,  plb0,  ldy2,  lda5,  ldx2,  lda6,
+    bcs0,  lda7,  lda8,  lda9,  ldy3,  lda10, ldx3,  lda11, clv0,  lda12, tsx0,
+    tyx0,  ldy4,  lda13, ldx4,  lda14, cpy0,  cmp0,  rep0,  cmp1,  cpy1,  cmp2,
+    dec1,  cmp3,  iny0,  cmp4,  dex0,  wai0,  cpy2,  cmp5,  dec2,  cmp6,  bne0,
+    cmp7,  cmp8,  cmp9,  pei0,  cmp10, dec3,  cmp11, cld0,  cmp12, phx0,  stp0,
+    jmp4,  cmp13, dec4,  cmp14, cpx0,  sbc0,  sep0,  sbc1,  cpx1,  sbc2,  inc1,
+    sbc3,  inx0,  sbc4,  nop0,  xba0,  cpx2,  sbc5,  inc2,  sbc6,  beq0,  sbc7,
+    sbc8,  sbc9,  pea0,  sbc10, inc3,  sbc11, sed0,  sbc12, plx0,  xce0,  jsr2,
+    sbc13, inc4,  sbc14
+};
+}
 
 #endif

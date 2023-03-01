@@ -1,14 +1,16 @@
-#ifndef CPU_DATA_HPP
-#define CPU_DATA_HPP
+#ifndef REGISTERS_HPP
+#define REGISTERS_HPP
+
+#include "../MemoryMap/MemoryMap.hpp"
 
 #include <cstdint>
 #include <vector>
 
 namespace snes {
-class CpuData {
+class Registers {
    public:
     
-    CpuData(void) = default;
+    Registers(void) = default;
 
     enum StatusFlag {
         N = 1 << 7,  // #$80 10000000 Negative
@@ -44,7 +46,7 @@ class CpuData {
                     // available(unused) location on the stack.
 
     // Data Bank        
-    uint16_t dbr;   // Data bank register, holds the default
+    uint32_t dbr;   // Data bank register, holds the default
                     // bank for memory transfers.
 
     // Direct Page      
@@ -61,13 +63,12 @@ class CpuData {
                   // tests and 65816 processing states.
 
     // Program Counter
-    std::vector<uint8_t>::iterator pc;  // Holds the memory address of the
+    MemoryMap::MemPtr pc;  // Holds the memory address of the
                                         // current CPU instruction
 
 
-    uint16_t mbr; // Holds fetched data, or data waiting to be written
+    // uint16_t mbr; // Holds fetched data, or data waiting to be written
 
-    std::vector<uint8_t> rom;
 };
 }  // namespace snes
 

@@ -1,0 +1,1048 @@
+void adc0(SystemState &state) {
+// Not implemented
+}
+
+void adc1(SystemState &state) {
+// Not implemented
+}
+
+void adc2(SystemState &state) {
+// Not implemented
+}
+
+void adc3(SystemState &state) {
+// Not implemented
+}
+
+void adc4(SystemState &state) {
+MemoryMap::MemPtr ptr = state.registers.pc;
+adcBase(ptr, state);
+}
+
+void adc5(SystemState &state) {
+// Not implemented
+}
+
+void adc6(SystemState &state) {
+MemoryMap::MemPtr ptr = decodeAbsoluteLong(state);
+adcBase(ptr, state);
+}
+
+void adc7(SystemState &state) {
+// Not implemented
+}
+
+void adc8(SystemState &state) {
+// Not implemented
+}
+
+void adc9(SystemState &state) {
+// Not implemented
+}
+
+void adc10(SystemState &state) {
+// Not implemented
+}
+
+void adc11(SystemState &state) {
+// Not implemented
+}
+
+void adc12(SystemState &state) {
+// Not implemented
+}
+
+void adc13(SystemState &state) {
+// Not implemented
+}
+
+void adc14(SystemState &state) {
+// Not implemented
+}
+
+void and0(SystemState &state) {
+// Not implemented
+}
+
+void and1(SystemState &state) {
+// Not implemented
+}
+
+void and2(SystemState &state) {
+// Not implemented
+}
+
+void and3(SystemState &state) {
+// Not implemented
+}
+
+void and4(SystemState &state) {
+MemoryMap::MemPtr ptr = state.registers.pc;
+// bitwise and
+}
+
+void and5(SystemState &state) {
+// Not implemented
+}
+
+void and6(SystemState &state) {
+MemoryMap::MemPtr ptr = decodeAbsoluteLong(state);
+// bitwise and
+}
+
+void and7(SystemState &state) {
+// Not implemented
+}
+
+void and8(SystemState &state) {
+// Not implemented
+}
+
+void and9(SystemState &state) {
+// Not implemented
+}
+
+void and10(SystemState &state) {
+// Not implemented
+}
+
+void and11(SystemState &state) {
+// Not implemented
+}
+
+void and12(SystemState &state) {
+// Not implemented
+}
+
+void and13(SystemState &state) {
+// Not implemented
+}
+
+void and14(SystemState &state) {
+// Not implemented
+}
+
+void asl0(SystemState &state) {
+// Not implemented
+}
+
+void asl1(SystemState &state) {
+// Not implemented
+}
+
+void asl2(SystemState &state) {
+// Not implemented
+}
+
+void asl3(SystemState &state) {
+// Not implemented
+}
+
+void asl4(SystemState &state) {
+// Not implemented
+}
+
+void bcc0(SystemState &state) {
+// Not implemented
+}
+
+void bcs0(SystemState &state) {
+// Not implemented
+}
+
+void beq0(SystemState &state) {
+// Not implemented
+}
+
+void bit0(SystemState &state) {
+// Not implemented
+}
+
+void bit1(SystemState &state) {
+// Not implemented
+}
+
+void bit2(SystemState &state) {
+// Not implemented
+}
+
+void bit3(SystemState &state) {
+// Not implemented
+}
+
+void bit4(SystemState &state) {
+MemoryMap::MemPtr ptr = state.registers.pc;
+// test bits, setting immediate value or address
+}
+
+void bmi0(SystemState &state) {
+// Not implemented
+}
+
+void bne0(SystemState &state) {
+// Not implemented
+}
+
+void bpl0(SystemState &state) {
+// Not implemented
+}
+
+void bra0(SystemState &state) {
+// Not implemented
+}
+
+void brk0(SystemState &state) {
+// Not implemented
+}
+
+void brl0(SystemState &state) {
+// Not implemented
+}
+
+void bvc0(SystemState &state) {
+// Not implemented
+}
+
+void bvs0(SystemState &state) {
+// Not implemented
+}
+
+void clc0(SystemState &state) {
+// Not implemented
+}
+
+void cld0(SystemState &state) {
+// Not implemented
+}
+
+void cli0(SystemState &state) {
+// Not implemented
+}
+
+void clv0(SystemState &state) {
+// Not implemented
+}
+
+void cmp0(SystemState &state) {
+// Not implemented
+}
+
+void cmp1(SystemState &state) {
+// Not implemented
+}
+
+void cmp2(SystemState &state) {
+// Not implemented
+}
+
+void cmp3(SystemState &state) {
+// Not implemented
+}
+
+void cmp4(SystemState &state) {
+MemoryMap::MemPtr ptr = state.registers.pc;
+// Compare accumulator with memory
+}
+
+void cmp5(SystemState &state) {
+// Not implemented
+}
+
+void cmp6(SystemState &state) {
+MemoryMap::MemPtr ptr = decodeAbsoluteLong(state);
+// Compare accumulator with memory
+}
+
+void cmp7(SystemState &state) {
+// Not implemented
+}
+
+void cmp8(SystemState &state) {
+// Not implemented
+}
+
+void cmp9(SystemState &state) {
+// Not implemented
+}
+
+void cmp10(SystemState &state) {
+// Not implemented
+}
+
+void cmp11(SystemState &state) {
+// Not implemented
+}
+
+void cmp12(SystemState &state) {
+// Not implemented
+}
+
+void cmp13(SystemState &state) {
+// Not implemented
+}
+
+void cmp14(SystemState &state) {
+// Not implemented
+}
+
+void cop0(SystemState &state) {
+// Not implemented
+}
+
+void cpx0(SystemState &state) {
+MemoryMap::MemPtr ptr = state.registers.pc;
+// Compare register X with memory
+}
+
+void cpx1(SystemState &state) {
+// Not implemented
+}
+
+void cpx2(SystemState &state) {
+// Not implemented
+}
+
+void cpy0(SystemState &state) {
+MemoryMap::MemPtr ptr = state.registers.pc;
+// Compare register Y with memory
+}
+
+void cpy1(SystemState &state) {
+// Not implemented
+}
+
+void cpy2(SystemState &state) {
+// Not implemented
+}
+
+void dec0(SystemState &state) {
+// Not implemented
+}
+
+void dec1(SystemState &state) {
+// Not implemented
+}
+
+void dec2(SystemState &state) {
+// Not implemented
+}
+
+void dec3(SystemState &state) {
+// Not implemented
+}
+
+void dec4(SystemState &state) {
+// Not implemented
+}
+
+void dex0(SystemState &state) {
+// Not implemented
+}
+
+void dey0(SystemState &state) {
+// Not implemented
+}
+
+void eor0(SystemState &state) {
+// Not implemented
+}
+
+void eor1(SystemState &state) {
+// Not implemented
+}
+
+void eor2(SystemState &state) {
+// Not implemented
+}
+
+void eor3(SystemState &state) {
+// Not implemented
+}
+
+void eor4(SystemState &state) {
+MemoryMap::MemPtr ptr = state.registers.pc;
+// Instruction not implemented
+}
+
+void eor5(SystemState &state) {
+// Not implemented
+}
+
+void eor6(SystemState &state) {
+MemoryMap::MemPtr ptr = decodeAbsoluteLong(state);
+// Instruction not implemented
+}
+
+void eor7(SystemState &state) {
+// Not implemented
+}
+
+void eor8(SystemState &state) {
+// Not implemented
+}
+
+void eor9(SystemState &state) {
+// Not implemented
+}
+
+void eor10(SystemState &state) {
+// Not implemented
+}
+
+void eor11(SystemState &state) {
+// Not implemented
+}
+
+void eor12(SystemState &state) {
+// Not implemented
+}
+
+void eor13(SystemState &state) {
+// Not implemented
+}
+
+void eor14(SystemState &state) {
+// Not implemented
+}
+
+void inc0(SystemState &state) {
+// Not implemented
+}
+
+void inc1(SystemState &state) {
+// Not implemented
+}
+
+void inc2(SystemState &state) {
+// Not implemented
+}
+
+void inc3(SystemState &state) {
+// Not implemented
+}
+
+void inc4(SystemState &state) {
+// Not implemented
+}
+
+void inx0(SystemState &state) {
+// Not implemented
+}
+
+void iny0(SystemState &state) {
+// Not implemented
+}
+
+void jmp0(SystemState &state) {
+// Not implemented
+}
+
+void jmp1(SystemState &state) {
+MemoryMap::MemPtr ptr = decodeAbsoluteLong(state);
+// Jump
+}
+
+void jmp2(SystemState &state) {
+// Not implemented
+}
+
+void jmp3(SystemState &state) {
+// Not implemented
+}
+
+void jmp4(SystemState &state) {
+// Not implemented
+}
+
+void jsr0(SystemState &state) {
+// Not implemented
+}
+
+void jsr1(SystemState &state) {
+MemoryMap::MemPtr ptr = decodeAbsoluteLong(state);
+// Jump and save return address
+}
+
+void jsr2(SystemState &state) {
+// Not implemented
+}
+
+void lda0(SystemState &state) {
+// Not implemented
+}
+
+void lda1(SystemState &state) {
+// Not implemented
+}
+
+void lda2(SystemState &state) {
+// Not implemented
+}
+
+void lda3(SystemState &state) {
+// Not implemented
+}
+
+void lda4(SystemState &state) {
+MemoryMap::MemPtr ptr = state.registers.pc;
+regs.a = arg; // change to handle size mode later
+}
+
+void lda5(SystemState &state) {
+// Not implemented
+}
+
+void lda6(SystemState &state) {
+MemoryMap::MemPtr ptr = decodeAbsoluteLong(state);
+regs.a = arg; // change to handle size mode later
+}
+
+void lda7(SystemState &state) {
+// Not implemented
+}
+
+void lda8(SystemState &state) {
+// Not implemented
+}
+
+void lda9(SystemState &state) {
+// Not implemented
+}
+
+void lda10(SystemState &state) {
+// Not implemented
+}
+
+void lda11(SystemState &state) {
+// Not implemented
+}
+
+void lda12(SystemState &state) {
+// Not implemented
+}
+
+void lda13(SystemState &state) {
+// Not implemented
+}
+
+void lda14(SystemState &state) {
+// Not implemented
+}
+
+void ldx0(SystemState &state) {
+MemoryMap::MemPtr ptr = state.registers.pc;
+regs.x = arg; // change to handle size mode later
+}
+
+void ldx1(SystemState &state) {
+// Not implemented
+}
+
+void ldx2(SystemState &state) {
+// Not implemented
+}
+
+void ldx3(SystemState &state) {
+// Not implemented
+}
+
+void ldx4(SystemState &state) {
+// Not implemented
+}
+
+void ldy0(SystemState &state) {
+MemoryMap::MemPtr ptr = state.registers.pc;
+regs.y = arg; // change to handle size mode later
+}
+
+void ldy1(SystemState &state) {
+// Not implemented
+}
+
+void ldy2(SystemState &state) {
+// Not implemented
+}
+
+void ldy3(SystemState &state) {
+// Not implemented
+}
+
+void ldy4(SystemState &state) {
+// Not implemented
+}
+
+void lsr0(SystemState &state) {
+// Not implemented
+}
+
+void lsr1(SystemState &state) {
+// Not implemented
+}
+
+void lsr2(SystemState &state) {
+// Not implemented
+}
+
+void lsr3(SystemState &state) {
+// Not implemented
+}
+
+void lsr4(SystemState &state) {
+// Not implemented
+}
+
+void mvn0(SystemState &state) {
+// Not implemented
+}
+
+void mvp0(SystemState &state) {
+// Not implemented
+}
+
+void nop0(SystemState &state) {
+// Not implemented
+}
+
+void ora0(SystemState &state) {
+// Not implemented
+}
+
+void ora1(SystemState &state) {
+// Not implemented
+}
+
+void ora2(SystemState &state) {
+// Not implemented
+}
+
+void ora3(SystemState &state) {
+// Not implemented
+}
+
+void ora4(SystemState &state) {
+MemoryMap::MemPtr ptr = state.registers.pc;
+// bitwise or
+}
+
+void ora5(SystemState &state) {
+// Not implemented
+}
+
+void ora6(SystemState &state) {
+MemoryMap::MemPtr ptr = decodeAbsoluteLong(state);
+// bitwise or
+}
+
+void ora7(SystemState &state) {
+// Not implemented
+}
+
+void ora8(SystemState &state) {
+// Not implemented
+}
+
+void ora9(SystemState &state) {
+// Not implemented
+}
+
+void ora10(SystemState &state) {
+// Not implemented
+}
+
+void ora11(SystemState &state) {
+// Not implemented
+}
+
+void ora12(SystemState &state) {
+// Not implemented
+}
+
+void ora13(SystemState &state) {
+// Not implemented
+}
+
+void ora14(SystemState &state) {
+// Not implemented
+}
+
+void pea0(SystemState &state) {
+// Not implemented
+}
+
+void pei0(SystemState &state) {
+// Not implemented
+}
+
+void per0(SystemState &state) {
+// Not implemented
+}
+
+void pha0(SystemState &state) {
+// Not implemented
+}
+
+void phb0(SystemState &state) {
+// Not implemented
+}
+
+void phd0(SystemState &state) {
+// Not implemented
+}
+
+void phk0(SystemState &state) {
+// Not implemented
+}
+
+void php0(SystemState &state) {
+// Not implemented
+}
+
+void phx0(SystemState &state) {
+// Not implemented
+}
+
+void phy0(SystemState &state) {
+// Not implemented
+}
+
+void pla0(SystemState &state) {
+// Not implemented
+}
+
+void plb0(SystemState &state) {
+// Not implemented
+}
+
+void pld0(SystemState &state) {
+// Not implemented
+}
+
+void plp0(SystemState &state) {
+// Not implemented
+}
+
+void plx0(SystemState &state) {
+// Not implemented
+}
+
+void ply0(SystemState &state) {
+// Not implemented
+}
+
+void rep0(SystemState &state) {
+MemoryMap::MemPtr ptr = state.registers.pc;
+regs.r &= !arg;
+}
+
+void rol0(SystemState &state) {
+// Not implemented
+}
+
+void rol1(SystemState &state) {
+// Not implemented
+}
+
+void rol2(SystemState &state) {
+// Not implemented
+}
+
+void rol3(SystemState &state) {
+// Not implemented
+}
+
+void rol4(SystemState &state) {
+// Not implemented
+}
+
+void ror0(SystemState &state) {
+// Not implemented
+}
+
+void ror1(SystemState &state) {
+// Not implemented
+}
+
+void ror2(SystemState &state) {
+// Not implemented
+}
+
+void ror3(SystemState &state) {
+// Not implemented
+}
+
+void ror4(SystemState &state) {
+// Not implemented
+}
+
+void rti0(SystemState &state) {
+// Not implemented
+}
+
+void rtl0(SystemState &state) {
+// Not implemented
+}
+
+void rts0(SystemState &state) {
+// Not implemented
+}
+
+void sbc0(SystemState &state) {
+// Not implemented
+}
+
+void sbc1(SystemState &state) {
+// Not implemented
+}
+
+void sbc2(SystemState &state) {
+// Not implemented
+}
+
+void sbc3(SystemState &state) {
+// Not implemented
+}
+
+void sbc4(SystemState &state) {
+MemoryMap::MemPtr ptr = state.registers.pc;
+sbcBase(ptr, state);
+}
+
+void sbc5(SystemState &state) {
+// Not implemented
+}
+
+void sbc6(SystemState &state) {
+MemoryMap::MemPtr ptr = decodeAbsoluteLong(state);
+sbcBase(ptr, state);
+}
+
+void sbc7(SystemState &state) {
+// Not implemented
+}
+
+void sbc8(SystemState &state) {
+// Not implemented
+}
+
+void sbc9(SystemState &state) {
+// Not implemented
+}
+
+void sbc10(SystemState &state) {
+// Not implemented
+}
+
+void sbc11(SystemState &state) {
+// Not implemented
+}
+
+void sbc12(SystemState &state) {
+// Not implemented
+}
+
+void sbc13(SystemState &state) {
+// Not implemented
+}
+
+void sbc14(SystemState &state) {
+// Not implemented
+}
+
+void sec0(SystemState &state) {
+// Not implemented
+}
+
+void sed0(SystemState &state) {
+// Not implemented
+}
+
+void sei0(SystemState &state) {
+// Not implemented
+}
+
+void sep0(SystemState &state) {
+MemoryMap::MemPtr ptr = state.registers.pc;
+regs.r |= arg;
+}
+
+void sta0(SystemState &state) {
+// Not implemented
+}
+
+void sta1(SystemState &state) {
+// Not implemented
+}
+
+void sta2(SystemState &state) {
+// Not implemented
+}
+
+void sta3(SystemState &state) {
+// Not implemented
+}
+
+void sta4(SystemState &state) {
+// Not implemented
+}
+
+void sta5(SystemState &state) {
+MemoryMap::MemPtr ptr = decodeAbsoluteLong(state);
+// Store accumulator in memory
+}
+
+void sta6(SystemState &state) {
+// Not implemented
+}
+
+void sta7(SystemState &state) {
+// Not implemented
+}
+
+void sta8(SystemState &state) {
+// Not implemented
+}
+
+void sta9(SystemState &state) {
+// Not implemented
+}
+
+void sta10(SystemState &state) {
+// Not implemented
+}
+
+void sta11(SystemState &state) {
+// Not implemented
+}
+
+void sta12(SystemState &state) {
+// Not implemented
+}
+
+void sta13(SystemState &state) {
+// Not implemented
+}
+
+void stp0(SystemState &state) {
+// Not implemented
+}
+
+void stx0(SystemState &state) {
+// Not implemented
+}
+
+void stx1(SystemState &state) {
+// Not implemented
+}
+
+void stx2(SystemState &state) {
+// Not implemented
+}
+
+void sty0(SystemState &state) {
+// Not implemented
+}
+
+void sty1(SystemState &state) {
+// Not implemented
+}
+
+void sty2(SystemState &state) {
+// Not implemented
+}
+
+void stz0(SystemState &state) {
+// Not implemented
+}
+
+void stz1(SystemState &state) {
+// Not implemented
+}
+
+void stz2(SystemState &state) {
+// Not implemented
+}
+
+void stz3(SystemState &state) {
+// Not implemented
+}
+
+void tax0(SystemState &state) {
+// Not implemented
+}
+
+void tay0(SystemState &state) {
+// Not implemented
+}
+
+void tcd0(SystemState &state) {
+// Not implemented
+}
+
+void tcs0(SystemState &state) {
+// Not implemented
+}
+
+void tdc0(SystemState &state) {
+// Not implemented
+}
+
+void trb0(SystemState &state) {
+// Not implemented
+}
+
+void trb1(SystemState &state) {
+// Not implemented
+}
+
+void tsb0(SystemState &state) {
+// Not implemented
+}
+
+void tsb1(SystemState &state) {
+// Not implemented
+}
+
+void tsc0(SystemState &state) {
+// Not implemented
+}
+
+void tsx0(SystemState &state) {
+// Not implemented
+}
+
+void txa0(SystemState &state) {
+// Not implemented
+}
+
+void txs0(SystemState &state) {
+// Not implemented
+}
+
+void txy0(SystemState &state) {
+// Not implemented
+}
+
+void tya0(SystemState &state) {
+// Not implemented
+}
+
+void tyx0(SystemState &state) {
+// Not implemented
+}
+
+void wai0(SystemState &state) {
+// Not implemented
+}
+
+void wdm0(SystemState &state) {
+// Not implemented
+}
+
+void xba0(SystemState &state) {
+// Not implemented
+}
+
+void xce0(SystemState &state) {
+// Not implemented
+}
+

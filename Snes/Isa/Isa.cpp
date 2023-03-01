@@ -1,1820 +1,1234 @@
 #include "Isa.hpp"
 
 namespace snes {
-void Adc0Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed Indirect,X
-    regs.a += arg;     // Temporary, will handle carry later
+void adc0(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexedIndirect(&*state.registers.pc, state.registers.x, state);
+    adcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Adc1Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Stack Relative
-    regs.a += arg;     // Temporary, will handle carry later
+void adc1(SystemState &state) {
+    // Not implemented
 }
 
-void Adc2Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    regs.a += arg;     // Temporary, will handle carry later
+void adc2(SystemState &state) {
+    // Not implemented
 }
 
-void Adc3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Long
-    regs.a += arg;     // Temporary, will handle carry later
+void adc3(SystemState &state) {
+    // Not implemented
 }
 
-void Adc4Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    size += !(regs.p & CpuRegisters::StatusFlag::M);
-    uint32_t arg = FETCH_ARG_FROM_ROM(regs.pc + 1, regs.pc + size);
-    regs.pc += size;
-    regs.a += arg;  // Temporary, will handle carry later
+void adc4(SystemState &state) {
+    uint32_t addr = state.registers.pc - state.memMap.mem.begin();
+    adcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Adc5Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    regs.a += arg;     // Temporary, will handle carry later
+void adc5(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    adcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Adc6Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long
-    regs.a += arg;     // Temporary, will handle carry later
+void adc6(SystemState &state) {
+    uint32_t addr = addrAbsoluteLong(&*state.registers.pc, state);
+    adcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Adc7Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Indexed, Y
-    regs.a += arg;     // Temporary, will handle carry later
+void adc7(SystemState &state) {
+    uint32_t addr =
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+    adcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Adc8Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect
-    regs.a += arg;     // Temporary, will handle carry later
+void adc8(SystemState &state) {
+    // Not implemented
 }
 
-void Adc9Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: SR Indirect Indexed,Y
-    regs.a += arg;     // Temporary, will handle carry later
+void adc9(SystemState &state) {
+    // Not implemented
 }
 
-void Adc10Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    regs.a += arg;     // Temporary, will handle carry later
+void adc10(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    adcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Adc11Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg =
-        0;          // Address mode not implemented: DP Indirect Long Indexed, Y
-    regs.a += arg;  // Temporary, will handle carry later
+void adc11(SystemState &state) {
+    uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
+                                              state.registers.Y, state);
+    adcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Adc12Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,Y
-    regs.a += arg;     // Temporary, will handle carry later
+void adc12(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.y, state);
+    adcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Adc13Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    regs.a += arg;     // Temporary, will handle carry later
+void adc13(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    adcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Adc14Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long Indexed,X
-    regs.a += arg;     // Temporary, will handle carry later
+void adc14(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteLongIndexed(&*state.registers.pc, state.registers.x, state);
+    adcBase(&(state.memMap.mem[addr]), state);
 }
 
-void And0Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed Indirect,X
-    // Execution not implemented
+void and0(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexedIndirect(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void And1Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Stack Relative
-    // Execution not implemented
+void and1(SystemState &state) {
+    // Not implemented
 }
 
-void And2Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void and2(SystemState &state) {
+    // Not implemented
 }
 
-void And3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Long
-    // Execution not implemented
+void and3(SystemState &state) {
+    // Not implemented
 }
 
-void And4Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    size += !(regs.p & CpuRegisters::StatusFlag::M);
-    // uint32_t arg = FETCH_ARG_FROM_ROM(regs.pc + 1, regs.pc + size);
-    // Execution not implemented
+void and4(SystemState &state) {
+    uint32_t addr = state.registers.pc - state.memMap.mem.begin();
+    // Instruction not implemented
 }
 
-void And5Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void and5(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void And6Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long
-    // Execution not implemented
+void and6(SystemState &state) {
+    uint32_t addr = addrAbsoluteLong(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void And7Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Indexed, Y
-    // Execution not implemented
+void and7(SystemState &state) {
+    uint32_t addr =
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+    // Instruction not implemented
 }
 
-void And8Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect
-    // Execution not implemented
+void and8(SystemState &state) {
+    // Not implemented
 }
 
-void And9Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: SR Indirect Indexed,Y
-    // Execution not implemented
+void and9(SystemState &state) {
+    // Not implemented
 }
 
-void And10Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void and10(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void And11Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg =
-        0;  // Address mode not implemented: DP Indirect Long Indexed, Y
-    // Execution not implemented
+void and11(SystemState &state) {
+    uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
+                                              state.registers.Y, state);
+    // Instruction not implemented
 }
 
-void And12Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,Y
-    // Execution not implemented
+void and12(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.y, state);
+    // Instruction not implemented
 }
 
-void And13Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void and13(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void And14Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long Indexed,X
-    // Execution not implemented
+void and14(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteLongIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Asl0Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void asl0(SystemState &state) {
+    // Not implemented
 }
 
-void Asl1Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Accumulator
-    // Execution not implemented
+void asl1(SystemState &state) {
+    // Not implemented
 }
 
-void Asl2Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void asl2(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Asl3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void asl3(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Asl4Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void asl4(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Bcc0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Program Counter Relative
-    // Execution not implemented
+void bcc0(SystemState &state) {
+    // Not implemented
 }
 
-void Bcs0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Program Counter Relative
-    // Execution not implemented
+void bcs0(SystemState &state) {
+    // Not implemented
 }
 
-void Beq0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Program Counter Relative
-    // Execution not implemented
+void beq0(SystemState &state) {
+    // Not implemented
 }
 
-void Bit0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void bit0(SystemState &state) {
+    // Not implemented
 }
 
-void Bit1Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void bit1(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Bit2Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void bit2(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Bit3Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void bit3(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Bit4Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    size += !(regs.p & CpuRegisters::StatusFlag::M);
-    // uint32_t arg = FETCH_ARG_FROM_ROM(regs.pc + 1, regs.pc + size);
-    // Execution not implemented
+void bit4(SystemState &state) {
+    uint32_t addr = state.registers.pc - state.memMap.mem.begin();
+    // Instruction not implemented
 }
 
-void Bmi0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Program Counter Relative
-    // Execution not implemented
+void bmi0(SystemState &state) {
+    // Not implemented
 }
 
-void Bne0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Program Counter Relative
-    // Execution not implemented
+void bne0(SystemState &state) {
+    // Not implemented
 }
 
-void Bpl0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Program Counter Relative
-    // Execution not implemented
+void bpl0(SystemState &state) {
+    // Not implemented
 }
 
-void Bra0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Program Counter Relative
-    // Execution not implemented
+void bra0(SystemState &state) {
+    // Not implemented
 }
 
-void Brk0Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Stack/Interrupt
-    // Execution not implemented
+void brk0(SystemState &state) {
+    // Not implemented
 }
 
-void Brl0Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg =
-        0;  // Address mode not implemented: Program Counter Relative Long
-    // Execution not implemented
+void brl0(SystemState &state) {
+    // Not implemented
 }
 
-void Bvc0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Program Counter Relative
-    // Execution not implemented
+void bvc0(SystemState &state) {
+    // Not implemented
 }
 
-void Bvs0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Program Counter Relative
-    // Execution not implemented
+void bvs0(SystemState &state) {
+    // Not implemented
 }
 
-void Clc0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void clc0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Cld0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void cld0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Cli0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void cli0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Clv0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void clv0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Cmp0Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed Indirect,X
-    // Execution not implemented
+void cmp0(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexedIndirect(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Cmp1Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Stack Relative
-    // Execution not implemented
+void cmp1(SystemState &state) {
+    // Not implemented
 }
 
-void Cmp2Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void cmp2(SystemState &state) {
+    // Not implemented
 }
 
-void Cmp3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Long
-    // Execution not implemented
+void cmp3(SystemState &state) {
+    // Not implemented
 }
 
-void Cmp4Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    size += !(regs.p & CpuRegisters::StatusFlag::M);
-    // uint32_t arg = FETCH_ARG_FROM_ROM(regs.pc + 1, regs.pc + size);
-    // Execution not implemented
+void cmp4(SystemState &state) {
+    uint32_t addr = state.registers.pc - state.memMap.mem.begin();
+    // Instruction not implemented
 }
 
-void Cmp5Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void cmp5(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Cmp6Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long
-    // Execution not implemented
+void cmp6(SystemState &state) {
+    uint32_t addr = addrAbsoluteLong(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Cmp7Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Indexed, Y
-    // Execution not implemented
+void cmp7(SystemState &state) {
+    uint32_t addr =
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+    // Instruction not implemented
 }
 
-void Cmp8Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect
-    // Execution not implemented
+void cmp8(SystemState &state) {
+    // Not implemented
 }
 
-void Cmp9Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: SR Indirect Indexed,Y
-    // Execution not implemented
+void cmp9(SystemState &state) {
+    // Not implemented
 }
 
-void Cmp10Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void cmp10(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Cmp11Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg =
-        0;  // Address mode not implemented: DP Indirect Long Indexed, Y
-    // Execution not implemented
+void cmp11(SystemState &state) {
+    uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
+                                              state.registers.Y, state);
+    // Instruction not implemented
 }
 
-void Cmp12Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,Y
-    // Execution not implemented
+void cmp12(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.y, state);
+    // Instruction not implemented
 }
 
-void Cmp13Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void cmp13(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Cmp14Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long Indexed,X
-    // Execution not implemented
+void cmp14(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteLongIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Cop0Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Stack/Interrupt
-    // Execution not implemented
+void cop0(SystemState &state) {
+    // Not implemented
 }
 
-void Cpx0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    size += !(regs.p & CpuRegisters::StatusFlag::X);
-    // uint32_t arg = FETCH_ARG_FROM_ROM(regs.pc + 1, regs.pc + size);
-    // Execution not implemented
+void cpx0(SystemState &state) {
+    uint32_t addr = state.registers.pc - state.memMap.mem.begin();
+    // Instruction not implemented
 }
 
-void Cpx1Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void cpx1(SystemState &state) {
+    // Not implemented
 }
 
-void Cpx2Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void cpx2(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Cpy0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    size += !(regs.p & CpuRegisters::StatusFlag::X);
-    // uint32_t arg = FETCH_ARG_FROM_ROM(regs.pc + 1, regs.pc + size);
-    // Execution not implemented
+void cpy0(SystemState &state) {
+    uint32_t addr = state.registers.pc - state.memMap.mem.begin();
+    // Instruction not implemented
 }
 
-void Cpy1Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void cpy1(SystemState &state) {
+    // Not implemented
 }
 
-void Cpy2Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void cpy2(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Dec0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Accumulator
-    // Execution not implemented
+void dec0(SystemState &state) {
+    // Not implemented
 }
 
-void Dec1Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void dec1(SystemState &state) {
+    // Not implemented
 }
 
-void Dec2Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void dec2(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Dec3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void dec3(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Dec4Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void dec4(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Dex0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void dex0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Dey0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void dey0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Eor0Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed Indirect,X
-    // Execution not implemented
+void eor0(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexedIndirect(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Eor1Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Stack Relative
-    // Execution not implemented
+void eor1(SystemState &state) {
+    // Not implemented
 }
 
-void Eor2Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void eor2(SystemState &state) {
+    // Not implemented
 }
 
-void Eor3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Long
-    // Execution not implemented
+void eor3(SystemState &state) {
+    // Not implemented
 }
 
-void Eor4Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    size += !(regs.p & CpuRegisters::StatusFlag::M);
-    // uint32_t arg = FETCH_ARG_FROM_ROM(regs.pc + 1, regs.pc + size);
-    // Execution not implemented
+void eor4(SystemState &state) {
+    uint32_t addr = state.registers.pc - state.memMap.mem.begin();
+    // Instruction not implemented
 }
 
-void Eor5Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void eor5(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Eor6Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long
-    // Execution not implemented
+void eor6(SystemState &state) {
+    uint32_t addr = addrAbsoluteLong(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Eor7Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Indexed, Y
-    // Execution not implemented
+void eor7(SystemState &state) {
+    uint32_t addr =
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+    // Instruction not implemented
 }
 
-void Eor8Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect
-    // Execution not implemented
+void eor8(SystemState &state) {
+    // Not implemented
 }
 
-void Eor9Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: SR Indirect Indexed,Y
-    // Execution not implemented
+void eor9(SystemState &state) {
+    // Not implemented
 }
 
-void Eor10Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void eor10(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Eor11Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg =
-        0;  // Address mode not implemented: DP Indirect Long Indexed, Y
-    // Execution not implemented
+void eor11(SystemState &state) {
+    uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
+                                              state.registers.Y, state);
+    // Instruction not implemented
 }
 
-void Eor12Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,Y
-    // Execution not implemented
+void eor12(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.y, state);
+    // Instruction not implemented
 }
 
-void Eor13Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void eor13(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Eor14Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long Indexed,X
-    // Execution not implemented
+void eor14(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteLongIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Inc0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Accumulator
-    // Execution not implemented
+void inc0(SystemState &state) {
+    // Not implemented
 }
 
-void Inc1Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void inc1(SystemState &state) {
+    // Not implemented
 }
 
-void Inc2Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void inc2(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Inc3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void inc3(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Inc4Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void inc4(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Inx0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void inx0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Iny0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void iny0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Jmp0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void jmp0(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Jmp1Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long
-    // Execution not implemented
+void jmp1(SystemState &state) {
+    uint32_t addr = addrAbsoluteLong(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Jmp2Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indirect
-    // Execution not implemented
+void jmp2(SystemState &state) {
+    // Not implemented
 }
 
-void Jmp3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg =
-        0;  // Address mode not implemented: Absolute Indexed Indirect
-    // Execution not implemented
+void jmp3(SystemState &state) {
+    // Not implemented
 }
 
-void Jmp4Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indirect Long
-    // Execution not implemented
+void jmp4(SystemState &state) {
+    // Not implemented
 }
 
-void Jsr0Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void jsr0(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Jsr1Func(CpuRegisters &regs) {
-    int numCycles = 8;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long
-    // Execution not implemented
+void jsr1(SystemState &state) {
+    uint32_t addr = addrAbsoluteLong(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Jsr2Func(CpuRegisters &regs) {
-    int numCycles = 8;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg =
-        0;  // Address mode not implemented: Absolute Indexed Indirect
-    // Execution not implemented
+void jsr2(SystemState &state) {
+    // Not implemented
 }
 
-void Lda0Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed Indirect,X
-    // Execution not implemented
+void lda0(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexedIndirect(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Lda1Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Stack Relative
-    // Execution not implemented
+void lda1(SystemState &state) {
+    // Not implemented
 }
 
-void Lda2Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void lda2(SystemState &state) {
+    // Not implemented
 }
 
-void Lda3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Long
-    // Execution not implemented
+void lda3(SystemState &state) {
+    // Not implemented
 }
 
-void Lda4Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    size += !(regs.p & CpuRegisters::StatusFlag::M);
-    // uint32_t arg = FETCH_ARG_FROM_ROM(regs.pc + 1, regs.pc + size);
-    // Execution not implemented
+void lda4(SystemState &state) {
+    uint32_t addr = state.registers.pc - state.memMap.mem.begin();
+    // Instruction not implemented
 }
 
-void Lda5Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void lda5(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Lda6Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long
-    // Execution not implemented
+void lda6(SystemState &state) {
+    uint32_t addr = addrAbsoluteLong(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Lda7Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Indexed, Y
-    // Execution not implemented
+void lda7(SystemState &state) {
+    uint32_t addr =
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+    // Instruction not implemented
 }
 
-void Lda8Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect
-    // Execution not implemented
+void lda8(SystemState &state) {
+    // Not implemented
 }
 
-void Lda9Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: SR Indirect Indexed,Y
-    // Execution not implemented
+void lda9(SystemState &state) {
+    // Not implemented
 }
 
-void Lda10Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void lda10(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Lda11Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg =
-        0;  // Address mode not implemented: DP Indirect Long Indexed, Y
-    // Execution not implemented
+void lda11(SystemState &state) {
+    uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
+                                              state.registers.Y, state);
+    // Instruction not implemented
 }
 
-void Lda12Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,Y
-    // Execution not implemented
+void lda12(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.y, state);
+    // Instruction not implemented
 }
 
-void Lda13Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void lda13(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Lda14Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long Indexed,X
-    // Execution not implemented
+void lda14(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteLongIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Ldx0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    size += !(regs.p & CpuRegisters::StatusFlag::X);
-    // uint32_t arg = FETCH_ARG_FROM_ROM(regs.pc + 1, regs.pc + size);
-    // Execution not implemented
+void ldx0(SystemState &state) {
+    uint32_t addr = state.registers.pc - state.memMap.mem.begin();
+    // Instruction not implemented
 }
 
-void Ldx1Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void ldx1(SystemState &state) {
+    // Not implemented
 }
 
-void Ldx2Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void ldx2(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Ldx3Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,Y
-    // Execution not implemented
+void ldx3(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.y, state);
+    // Instruction not implemented
 }
 
-void Ldx4Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,Y
-    // Execution not implemented
+void ldx4(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.y, state);
+    // Instruction not implemented
 }
 
-void Ldy0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    size += !(regs.p & CpuRegisters::StatusFlag::X);
-    // uint32_t arg = FETCH_ARG_FROM_ROM(regs.pc + 1, regs.pc + size);
-    // Execution not implemented
+void ldy0(SystemState &state) {
+    uint32_t addr = state.registers.pc - state.memMap.mem.begin();
+    // Instruction not implemented
 }
 
-void Ldy1Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void ldy1(SystemState &state) {
+    // Not implemented
 }
 
-void Ldy2Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void ldy2(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Ldy3Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void ldy3(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Ldy4Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void ldy4(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Lsr0Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void lsr0(SystemState &state) {
+    // Not implemented
 }
 
-void Lsr1Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Accumulator
-    // Execution not implemented
+void lsr1(SystemState &state) {
+    // Not implemented
 }
 
-void Lsr2Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void lsr2(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Lsr3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void lsr3(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Lsr4Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void lsr4(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Mvn0Func(CpuRegisters &regs) {
-    int numCycles = 1;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Block Move
-    // Execution not implemented
+void mvn0(SystemState &state) {
+    // Not implemented
 }
 
-void Mvp0Func(CpuRegisters &regs) {
-    int numCycles = 1;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Block Move
-    // Execution not implemented
+void mvp0(SystemState &state) {
+    // Not implemented
 }
 
-void Nop0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void nop0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Ora0Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed Indirect,X
-    // Execution not implemented
+void ora0(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexedIndirect(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Ora1Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Stack Relative
-    // Execution not implemented
+void ora1(SystemState &state) {
+    // Not implemented
 }
 
-void Ora2Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void ora2(SystemState &state) {
+    // Not implemented
 }
 
-void Ora3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Long
-    // Execution not implemented
+void ora3(SystemState &state) {
+    // Not implemented
 }
 
-void Ora4Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    size += !(regs.p & CpuRegisters::StatusFlag::M);
-    // uint32_t arg = FETCH_ARG_FROM_ROM(regs.pc + 1, regs.pc + size);
-    // Execution not implemented
+void ora4(SystemState &state) {
+    uint32_t addr = state.registers.pc - state.memMap.mem.begin();
+    // Instruction not implemented
 }
 
-void Ora5Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void ora5(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Ora6Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long
-    // Execution not implemented
+void ora6(SystemState &state) {
+    uint32_t addr = addrAbsoluteLong(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Ora7Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Indexed, Y
-    // Execution not implemented
+void ora7(SystemState &state) {
+    uint32_t addr =
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+    // Instruction not implemented
 }
 
-void Ora8Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect
-    // Execution not implemented
+void ora8(SystemState &state) {
+    // Not implemented
 }
 
-void Ora9Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: SR Indirect Indexed,Y
-    // Execution not implemented
+void ora9(SystemState &state) {
+    // Not implemented
 }
 
-void Ora10Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void ora10(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Ora11Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg =
-        0;  // Address mode not implemented: DP Indirect Long Indexed, Y
-    // Execution not implemented
+void ora11(SystemState &state) {
+    uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
+                                              state.registers.Y, state);
+    // Instruction not implemented
 }
 
-void Ora12Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,Y
-    // Execution not implemented
+void ora12(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.y, state);
+    // Instruction not implemented
 }
 
-void Ora13Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void ora13(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Ora14Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long Indexed,X
-    // Execution not implemented
+void ora14(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteLongIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Pea0Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (Absolute)
-    // Execution not implemented
+void pea0(SystemState &state) {
+    // Not implemented
 }
 
-void Pei0Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (DP Indirect)
-    // Execution not implemented
+void pei0(SystemState &state) {
+    // Not implemented
 }
 
-void Per0Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (PC Relative Long)
-    // Execution not implemented
+void per0(SystemState &state) {
+    // Not implemented
 }
 
-void Pha0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (Push)
-    // Execution not implemented
+void pha0(SystemState &state) {
+    // Not implemented
 }
 
-void Phb0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (Push)
-    // Execution not implemented
+void phb0(SystemState &state) {
+    // Not implemented
 }
 
-void Phd0Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (Push)
-    // Execution not implemented
+void phd0(SystemState &state) {
+    // Not implemented
 }
 
-void Phk0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (Push)
-    // Execution not implemented
+void phk0(SystemState &state) {
+    // Not implemented
 }
 
-void Php0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (Push)
-    // Execution not implemented
+void php0(SystemState &state) {
+    // Not implemented
 }
 
-void Phx0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (Push)
-    // Execution not implemented
+void phx0(SystemState &state) {
+    // Not implemented
 }
 
-void Phy0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (Push)
-    // Execution not implemented
+void phy0(SystemState &state) {
+    // Not implemented
 }
 
-void Pla0Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (Pull)
-    // Execution not implemented
+void pla0(SystemState &state) {
+    // Not implemented
 }
 
-void Plb0Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (Pull)
-    // Execution not implemented
+void plb0(SystemState &state) {
+    // Not implemented
 }
 
-void Pld0Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (Pull)
-    // Execution not implemented
+void pld0(SystemState &state) {
+    // Not implemented
 }
 
-void Plp0Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (Pull)
-    // Execution not implemented
+void plp0(SystemState &state) {
+    // Not implemented
 }
 
-void Plx0Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (Pull)
-    // Execution not implemented
+void plx0(SystemState &state) {
+    // Not implemented
 }
 
-void Ply0Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (Pull)
-    // Execution not implemented
+void ply0(SystemState &state) {
+    // Not implemented
 }
 
-void Rep0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    // uint32_t arg = FETCH_ARG_FROM_ROM(regs.pc + 1, regs.pc + size);
-    // Execution not implemented
+void rep0(SystemState &state) {
+    uint32_t addr = state.registers.pc - state.memMap.mem.begin();
+    // Instruction not implemented
 }
 
-void Rol0Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void rol0(SystemState &state) {
+    // Not implemented
 }
 
-void Rol1Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Accumulator
-    // Execution not implemented
+void rol1(SystemState &state) {
+    // Not implemented
 }
 
-void Rol2Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void rol2(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Rol3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void rol3(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Rol4Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void rol4(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Ror0Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void ror0(SystemState &state) {
+    // Not implemented
 }
 
-void Ror1Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Accumulator
-    // Execution not implemented
+void ror1(SystemState &state) {
+    // Not implemented
 }
 
-void Ror2Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void ror2(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Ror3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void ror3(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Ror4Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void ror4(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Rti0Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (RTI)
-    // Execution not implemented
+void rti0(SystemState &state) {
+    // Not implemented
 }
 
-void Rtl0Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (RTL)
-    // Execution not implemented
+void rtl0(SystemState &state) {
+    // Not implemented
 }
 
-void Rts0Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Stack (RTS)
-    // Execution not implemented
+void rts0(SystemState &state) {
+    // Not implemented
 }
 
-void Sbc0Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed Indirect,X
-    // Execution not implemented
+void sbc0(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexedIndirect(&*state.registers.pc, state.registers.x, state);
+    sbcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Sbc1Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Stack Relative
-    // Execution not implemented
+void sbc1(SystemState &state) {
+    // Not implemented
 }
 
-void Sbc2Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void sbc2(SystemState &state) {
+    // Not implemented
 }
 
-void Sbc3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Long
-    // Execution not implemented
+void sbc3(SystemState &state) {
+    // Not implemented
 }
 
-void Sbc4Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 2;
-    size += !(regs.p & CpuRegisters::StatusFlag::M);
-    // uint32_t arg = FETCH_ARG_FROM_ROM(regs.pc + 1, regs.pc + size);
-    // Execution not implemented
+void sbc4(SystemState &state) {
+    uint32_t addr = state.registers.pc - state.memMap.mem.begin();
+    sbcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Sbc5Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void sbc5(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    sbcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Sbc6Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long
-    // Execution not implemented
+void sbc6(SystemState &state) {
+    uint32_t addr = addrAbsoluteLong(&*state.registers.pc, state);
+    sbcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Sbc7Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Indexed, Y
-    // Execution not implemented
+void sbc7(SystemState &state) {
+    uint32_t addr =
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+    sbcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Sbc8Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect
-    // Execution not implemented
+void sbc8(SystemState &state) {
+    // Not implemented
 }
 
-void Sbc9Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: SR Indirect Indexed,Y
-    // Execution not implemented
+void sbc9(SystemState &state) {
+    // Not implemented
 }
 
-void Sbc10Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void sbc10(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    sbcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Sbc11Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg =
-        0;  // Address mode not implemented: DP Indirect Long Indexed, Y
-    // Execution not implemented
+void sbc11(SystemState &state) {
+    uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
+                                              state.registers.Y, state);
+    sbcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Sbc12Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,Y
-    // Execution not implemented
+void sbc12(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.y, state);
+    sbcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Sbc13Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void sbc13(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    sbcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Sbc14Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long Indexed,X
-    // Execution not implemented
+void sbc14(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteLongIndexed(&*state.registers.pc, state.registers.x, state);
+    sbcBase(&(state.memMap.mem[addr]), state);
 }
 
-void Sec0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void sec0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Sed0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void sed0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Sei0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void sei0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Sep0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    // uint32_t arg = FETCH_ARG_FROM_ROM(regs.pc + 1, regs.pc + size);
-    // Execution not implemented
+void sep0(SystemState &state) {
+    uint32_t addr = state.registers.pc - state.memMap.mem.begin();
+    // Instruction not implemented
 }
 
-void Sta0Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed Indirect,X
-    // Execution not implemented
+void sta0(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexedIndirect(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Sta1Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Stack Relative
-    // Execution not implemented
+void sta1(SystemState &state) {
+    // Not implemented
 }
 
-void Sta2Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void sta2(SystemState &state) {
+    // Not implemented
 }
 
-void Sta3Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Long
-    // Execution not implemented
+void sta3(SystemState &state) {
+    // Not implemented
 }
 
-void Sta4Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void sta4(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Sta5Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long
-    // Execution not implemented
+void sta5(SystemState &state) {
+    uint32_t addr = addrAbsoluteLong(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Sta6Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect Indexed, Y
-    // Execution not implemented
+void sta6(SystemState &state) {
+    uint32_t addr =
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+    // Instruction not implemented
 }
 
-void Sta7Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indirect
-    // Execution not implemented
+void sta7(SystemState &state) {
+    // Not implemented
 }
 
-void Sta8Func(CpuRegisters &regs) {
-    int numCycles = 7;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: SR Indirect Indexed,Y
-    // Execution not implemented
+void sta8(SystemState &state) {
+    // Not implemented
 }
 
-void Sta9Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void sta9(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Sta10Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg =
-        0;  // Address mode not implemented: DP Indirect Long Indexed, Y
-    // Execution not implemented
+void sta10(SystemState &state) {
+    uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
+                                              state.registers.Y, state);
+    // Instruction not implemented
 }
 
-void Sta11Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,Y
-    // Execution not implemented
+void sta11(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.y, state);
+    // Instruction not implemented
 }
 
-void Sta12Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void sta12(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Sta13Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 4;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Long Indexed,X
-    // Execution not implemented
+void sta13(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteLongIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Stp0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void stp0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Stx0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void stx0(SystemState &state) {
+    // Not implemented
 }
 
-void Stx1Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void stx1(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Stx2Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,Y
-    // Execution not implemented
+void stx2(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.y, state);
+    // Instruction not implemented
 }
 
-void Sty0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void sty0(SystemState &state) {
+    // Not implemented
 }
 
-void Sty1Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void sty1(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Sty2Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void sty2(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Stz0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void stz0(SystemState &state) {
+    // Not implemented
 }
 
-void Stz1Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: DP Indexed,X
-    // Execution not implemented
+void stz1(SystemState &state) {
+    uint32_t addr =
+        addrDPIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Stz2Func(CpuRegisters &regs) {
-    int numCycles = 4;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void stz2(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Stz3Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute Indexed,X
-    // Execution not implemented
+void stz3(SystemState &state) {
+    uint32_t addr =
+        addrAbsoluteIndexed(&*state.registers.pc, state.registers.x, state);
+    // Instruction not implemented
 }
 
-void Tax0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void tax0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Tay0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void tay0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Tcd0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void tcd0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Tcs0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void tcs0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Tdc0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void tdc0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Trb0Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void trb0(SystemState &state) {
+    // Not implemented
 }
 
-void Trb1Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void trb1(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Tsb0Func(CpuRegisters &regs) {
-    int numCycles = 5;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented: Direct Page
-    // Execution not implemented
+void tsb0(SystemState &state) {
+    // Not implemented
 }
 
-void Tsb1Func(CpuRegisters &regs) {
-    int numCycles = 6;  // Implement variable cycle rules later
-    int size = 3;
-    uint32_t arg = 0;  // Address mode not implemented: Absolute
-    // Execution not implemented
+void tsb1(SystemState &state) {
+    uint32_t addr = addrAbsolute(&*state.registers.pc, state);
+    // Instruction not implemented
 }
 
-void Tsc0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void tsc0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Tsx0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void tsx0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Txa0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void txa0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Txs0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void txs0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Txy0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void txy0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Tya0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void tya0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Tyx0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void tyx0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Wai0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void wai0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Wdm0Func(CpuRegisters &regs) {
-    int numCycles = 0;  // Implement variable cycle rules later
-    int size = 2;
-    uint32_t arg = 0;  // Address mode not implemented:
-    // Execution not implemented
+void wdm0(SystemState &state) {
+    // Not implemented
 }
 
-void Xba0Func(CpuRegisters &regs) {
-    int numCycles = 3;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void xba0(SystemState &state) {
+    // Instruction not implemented
 }
 
-void Xce0Func(CpuRegisters &regs) {
-    int numCycles = 2;  // Implement variable cycle rules later
-    int size = 1;
-    uint32_t arg = 0;  // Address mode not implemented: Implied
-    // Execution not implemented
+void xce0(SystemState &state) {
+    // Instruction not implemented
 }
 
 }  // namespace snes
