@@ -100,29 +100,29 @@ inline uint32_t addrPCRelative(SystemState &state) {
 // ---------- Base Instructions ---------- //
 
 
-void adcBase(uint8_t *ptr, SystemState &state) {
-    uint16_t &p = state.registers.p;
-    uint16_t &a = state.registers.a;
-    const int sizeInBytes =  1 + !(p & Registers::M);
-    uint32_t arg = addrImmediate(ptr, sizeInBytes);
-    arg += a + ((p & Registers::C) > 0); // add with carry bit
-    p &= !Registers::C; // clear carry bit
-    p |= sizeInBytes == 1 ? arg > INT8_MAX : arg > INT16_MAX; // set carry bit if carry happens
-    a = arg;
-    state.registers.pc += sizeInBytes;
-}
-
-void sbcBase(uint8_t *ptr, SystemState &state) {
-    uint16_t &p = state.registers.p;
-    uint16_t &a = state.registers.a;
-    int sizeInBytes =  1 + !(p & Registers::M);
-    uint32_t arg = addrImmediate(ptr, sizeInBytes);
-    arg -= a + ((p & Registers::C) > 0); // add with carry bit
-    p &= !Registers::C; // clear carry bit
-    p |= sizeInBytes == 1 ? arg > INT8_MAX : arg > INT16_MAX; // set carry bit if carry happens
-    a = arg;   
-    state.registers.pc += sizeInBytes;
-}
+// void adcBase(uint8_t *ptr, SystemState &state) {
+//     uint16_t &p = state.registers.p;
+//     uint16_t &a = state.registers.a;
+//     const int sizeInBytes =  1 + !(p & Registers::M);
+//     uint32_t arg = addrImmediate(ptr, sizeInBytes);
+//     arg += a + ((p & Registers::C) > 0); // add with carry bit
+//     p &= !Registers::C; // clear carry bit
+//     p |= sizeInBytes == 1 ? arg > INT8_MAX : arg > INT16_MAX; // set carry bit if carry happens
+//     a = arg;
+//     state.registers.pc += sizeInBytes;
+// }
+// 
+// void sbcBase(uint8_t *ptr, SystemState &state) {
+//     uint16_t &p = state.registers.p;
+//     uint16_t &a = state.registers.a;
+//     int sizeInBytes =  1 + !(p & Registers::M);
+//     uint32_t arg = addrImmediate(ptr, sizeInBytes);
+//     arg -= a + ((p & Registers::C) > 0); // add with carry bit
+//     p &= !Registers::C; // clear carry bit
+//     p |= sizeInBytes == 1 ? arg > INT8_MAX : arg > INT16_MAX; // set carry bit if carry happens
+//     a = arg;   
+//     state.registers.pc += sizeInBytes;
+// }
 
 
 

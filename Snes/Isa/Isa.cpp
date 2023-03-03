@@ -1,6 +1,35 @@
 #include "Isa.hpp"
 
 namespace snes {
+
+
+
+void adcBase(uint8_t *ptr, SystemState &state) {
+    uint16_t &p = state.registers.p;
+    uint16_t &a = state.registers.a;
+    const int sizeInBytes =  1 + !(p & Registers::M);
+    uint32_t arg = addrImmediate(ptr, sizeInBytes);
+    arg += a + ((p & Registers::C) > 0); // add with carry bit
+    p &= !Registers::C; // clear carry bit
+    p |= sizeInBytes == 1 ? arg > INT8_MAX : arg > INT16_MAX; // set carry bit if carry happens
+    a = arg;
+    state.registers.pc += sizeInBytes;
+}
+
+void sbcBase(uint8_t *ptr, SystemState &state) {
+    uint16_t &p = state.registers.p;
+    uint16_t &a = state.registers.a;
+    int sizeInBytes =  1 + !(p & Registers::M);
+    uint32_t arg = addrImmediate(ptr, sizeInBytes);
+    arg -= a + ((p & Registers::C) > 0); // add with carry bit
+    p &= !Registers::C; // clear carry bit
+    p |= sizeInBytes == 1 ? arg > INT8_MAX : arg > INT16_MAX; // set carry bit if carry happens
+    a = arg;   
+    state.registers.pc += sizeInBytes;
+}
+
+
+
 void adc0(SystemState &state) {
     uint32_t addr =
         addrDPIndexedIndirect(&*state.registers.pc, state.registers.x, state);
@@ -36,7 +65,7 @@ void adc6(SystemState &state) {
 
 void adc7(SystemState &state) {
     uint32_t addr =
-        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.y, state);
     adcBase(&(state.memMap.mem[addr]), state);
 }
 
@@ -56,7 +85,7 @@ void adc10(SystemState &state) {
 
 void adc11(SystemState &state) {
     uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
-                                              state.registers.Y, state);
+                                              state.registers.y, state);
     adcBase(&(state.memMap.mem[addr]), state);
 }
 
@@ -113,7 +142,7 @@ void and6(SystemState &state) {
 
 void and7(SystemState &state) {
     uint32_t addr =
-        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.y, state);
     // Instruction not implemented
 }
 
@@ -133,7 +162,7 @@ void and10(SystemState &state) {
 
 void and11(SystemState &state) {
     uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
-                                              state.registers.Y, state);
+                                              state.registers.y, state);
     // Instruction not implemented
 }
 
@@ -301,7 +330,7 @@ void cmp6(SystemState &state) {
 
 void cmp7(SystemState &state) {
     uint32_t addr =
-        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.y, state);
     // Instruction not implemented
 }
 
@@ -321,7 +350,7 @@ void cmp10(SystemState &state) {
 
 void cmp11(SystemState &state) {
     uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
-                                              state.registers.Y, state);
+                                              state.registers.y, state);
     // Instruction not implemented
 }
 
@@ -443,7 +472,7 @@ void eor6(SystemState &state) {
 
 void eor7(SystemState &state) {
     uint32_t addr =
-        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.y, state);
     // Instruction not implemented
 }
 
@@ -463,7 +492,7 @@ void eor10(SystemState &state) {
 
 void eor11(SystemState &state) {
     uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
-                                              state.registers.Y, state);
+                                              state.registers.y, state);
     // Instruction not implemented
 }
 
@@ -589,7 +618,7 @@ void lda6(SystemState &state) {
 
 void lda7(SystemState &state) {
     uint32_t addr =
-        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.y, state);
     // Instruction not implemented
 }
 
@@ -609,7 +638,7 @@ void lda10(SystemState &state) {
 
 void lda11(SystemState &state) {
     uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
-                                              state.registers.Y, state);
+                                              state.registers.y, state);
     // Instruction not implemented
 }
 
@@ -755,7 +784,7 @@ void ora6(SystemState &state) {
 
 void ora7(SystemState &state) {
     uint32_t addr =
-        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.y, state);
     // Instruction not implemented
 }
 
@@ -775,7 +804,7 @@ void ora10(SystemState &state) {
 
 void ora11(SystemState &state) {
     uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
-                                              state.registers.Y, state);
+                                              state.registers.y, state);
     // Instruction not implemented
 }
 
@@ -963,7 +992,7 @@ void sbc6(SystemState &state) {
 
 void sbc7(SystemState &state) {
     uint32_t addr =
-        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.y, state);
     sbcBase(&(state.memMap.mem[addr]), state);
 }
 
@@ -983,7 +1012,7 @@ void sbc10(SystemState &state) {
 
 void sbc11(SystemState &state) {
     uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
-                                              state.registers.Y, state);
+                                              state.registers.y, state);
     sbcBase(&(state.memMap.mem[addr]), state);
 }
 
@@ -1052,7 +1081,7 @@ void sta5(SystemState &state) {
 
 void sta6(SystemState &state) {
     uint32_t addr =
-        addrDPIndirectIndexed(&*state.registers.pc, state.registers.Y, state);
+        addrDPIndirectIndexed(&*state.registers.pc, state.registers.y, state);
     // Instruction not implemented
 }
 
@@ -1072,7 +1101,7 @@ void sta9(SystemState &state) {
 
 void sta10(SystemState &state) {
     uint32_t addr = addrDPIndirectIndexedLong(&*state.registers.pc,
-                                              state.registers.Y, state);
+                                              state.registers.y, state);
     // Instruction not implemented
 }
 

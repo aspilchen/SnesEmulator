@@ -28,19 +28,19 @@ ADDRESS_RULES = {
     "Absolute Long":callBasicIndirect("addrAbsoluteLong"),
 
     "DP Indirect Indexed,X":callIndex("addrDPIndirectIndexed", "state.registers.x"),
-    "DP Indirect Indexed,Y":callIndex("addrDPIndirectIndexed", "state.registers.Y"),
+    "DP Indirect Indexed,Y":callIndex("addrDPIndirectIndexed", "state.registers.y"),
     "DP Indirect Indexed, X":callIndex("addrDPIndirectIndexed", "state.registers.x"),
-    "DP Indirect Indexed, Y":callIndex("addrDPIndirectIndexed", "state.registers.Y"),
+    "DP Indirect Indexed, Y":callIndex("addrDPIndirectIndexed", "state.registers.y"),
 
     "DP Indirect Indexed,X":callIndex("addrDPIndirectIndexed", "state.registers.x"),
-    "DP Indirect Indexed,Y":callIndex("addrDPIndirectIndexed", "state.registers.Y"),
+    "DP Indirect Indexed,Y":callIndex("addrDPIndirectIndexed", "state.registers.y"),
     "DP Indirect Indexed, X":callIndex("addrDPIndirectIndexed", "state.registers.x"),
-    "DP Indirect Indexed, Y":callIndex("addrDPIndirectIndexed", "state.registers.Y"),
+    "DP Indirect Indexed, Y":callIndex("addrDPIndirectIndexed", "state.registers.y"),
 
     "DP Indirect Long Indexed,X":callIndex("addrDPIndirectIndexedLong", "state.registers.x"),
-    "DP Indirect Long Indexed,Y":callIndex("addrDPIndirectIndexedLong", "state.registers.Y"),
+    "DP Indirect Long Indexed,Y":callIndex("addrDPIndirectIndexedLong", "state.registers.y"),
     "DP Indirect Long Indexed, X":callIndex("addrDPIndirectIndexedLong", "state.registers.x"),
-    "DP Indirect Long Indexed, Y":callIndex("addrDPIndirectIndexedLong", "state.registers.Y"),
+    "DP Indirect Long Indexed, Y":callIndex("addrDPIndirectIndexedLong", "state.registers.y"),
 
     "DP Indexed,X":callIndex("addrDPIndexed", "state.registers.x"),
     "DP Indexed,Y":callIndex("addrDPIndexed", "state.registers.y"),
