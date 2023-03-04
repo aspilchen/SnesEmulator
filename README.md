@@ -1,27 +1,35 @@
 # SnesEmulator
-Experimental SNES emulator. Attempting to do this from scratch with no 3rd party libraries just to learn. The goal is to keep it as simple 
-and easy as possible. I am not trying to accurately represent the hardware, just the function.
+Experimental SNES emulator. Attempting to do this from scratch with minimal 3rd party libraries, however I will likely use a graphics framework for the GUI and displaying the game, as well as a testing framework.
 
-System timing will be a huge factor in the future. For now I just want it to work. Trying to design things with a system clock in mind. I
-don't know how this will perform in reality, but it will be a neat experiment.
+# Goals
+Demonstrate a wide range of skills, knowledge and adaptability. Some of the things required for this project are.
+- A strong understanding of C++
+- Comfort with parallel programming (will be used later)
+- Designing and refining the program architecture
+- Adabtability and efficiently (ex. creating a code generator in Python to handle large parts of the ISA implementation)
+- Deep understanding of computer architecture
+- The ability to research and learn about new material
+- Establishing and maintaining a build system
+- Testing
+- Basic use of GIT
 
-Optimization will come last (if needed) once things actually work.
+# Dependencies
+- [CMake V3.7](https://cmake.org/) or greater
+- [Catch2](https://github.com/catchorg/Catch2): C++ unit testing framework. Chosen because it is small and fast/easy to set up. CMake will download and include this when the tests are first built.
 
 # Some things to do
-- IMPORTANT!!! Set up CPU status register (P registert) to start handling different modes
-	- Modes affect things like 8bit/16bit mode, changing the behaviour of many instructions
-	- Don't implement too far ahead without handling this, otherwise it's more to change later
-- Create a memory map to store the SNES game data, and map SNES addresses to real addresses
-	- Mapper has to determine ROM memory type (HiRom, LowRom etc..) and find header to provide reset vector
-- Successfully simulate booting a game
-- Successfully fetch-decode-execute instructions in the correct order
-- Set up build system
+### Ricoh5A22 ISA
+- [ ] Addressing modes
+- [ ] Implement instructions 
+- [ ] Inturrupts
+- [ ] Test for logical correctness
+- [ ] Test for time correctness (optimize if needed)
 
-# General Concept
-Each hardware unit (CPU, etc..) will execute in its own thread. The class managing that units thread will act as the "physical" unit,
-holding any registers or bus connections to other units as needed.
+### Memory Mapping
+- [ ] Detect and map simplest game format (LoRom with no peripherals)
+- [ ] Add detection and handling for HiRom
+- [ ] Handle other formats and peripherals
 
-I want to take advantage of modern hardware to (hopefully) execute the instructions and whatever else faster than the actual SNES would. But
-keep a record of how many cycles each action SHOULD take, and use the clock to keep things running at the correct speed. Otherwise games
-would be running in hyperspeed. If the host computer can act faster than the SNES clock, my hope is that this will prevent the slow-down 
-issues the SNES experiences when too much is happening at once.
+# References
+- [Addressing mode details](https://wiki.superfamicom.org/jay%27s-asm-tutorial)
+- [ISA details](https://wiki.superfamicom.org/65816-reference)
