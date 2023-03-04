@@ -1,55 +1,9 @@
-import os
-
-CWD = os.getcwd()
-OUTPUT_DIR = os.path.join(CWD, "ISA")
-ISA_INCLUDES_FILE = os.path.join(OUTPUT_DIR, "ISA.hpp")
-BASE_CLASS = "BaseInstruction"
-
-def objectPath(className, extension):
-    return os.path.join(OUTPUT_DIR, className, className + extension)
-
-
-ALU = "ARITHMETIC_LOGIC"
-LODSTR = "LOAD_STORE"
-TRANSFER = "TRANSFER"
-BRANCH = "BRANCH"
-JUMP = "JUMP"
-INTURRUPT = "INTURRUPT"
-P_FLAG = "P_FLAG"
-STACK = "STACK"
-
-instructionTypes = ["ARITHMATIC_LOGIC", "LOAD_STORE", "TRANSFER", "BRANCH", "JUMP", "INTURRUPT", "P_FLAG", "STACK", "BLOCK_MOVE", "RESERVED"]
-
-typeMap = {"ADC":ALU, "SBC":ALU, "AND":ALU, "EOR":ALU, "ORA":ALU, "TSB":ALU, "TRB":ALU, "ASL":ALU, "LSR":ALU, "ROL":ALU, "ROR":ALU, "BIT":ALU, "CMP":ALU, "CPX":ALU, "CPY":ALU, "DEA":ALU, "DEC":ALU, "DEX":ALU, "DEY":ALU, "INA":ALU, "INC":ALU, "INX":ALU, "INY":ALU, "NOP":ALU, "XBA":ALU,
-    "LDA":LODSTR, "LDX":LODSTR, "LDY":LODSTR, "STA":LODSTR, "STX":LODSTR, "STY":LODSTR, "STZ":LODSTR,
-    "TAX":TRANSFER, "TAY":TRANSFER, "TCD":TRANSFER, "TCS":TRANSFER, "TDC":TRANSFER, "TSC":TRANSFER, "TSX":TRANSFER, "TXA":TRANSFER, "TXS":TRANSFER, "TXY":TRANSFER, "TYA":TRANSFER, "TYX":TRANSFER,
-    "BCC":BRANCH, "BCS":BRANCH, "BNE":BRANCH, "BEQ":BRANCH, "BPL":BRANCH, "BMI":BRANCH, "BVC":BRANCH, "BVS":BRANCH, "BRA":BRANCH, "BRL":BRANCH,
-    "JMP":JUMP, "JML":JUMP, "JSR":JUMP, "JSL":JUMP, "RTS":JUMP, "RTL":JUMP,
-    "BRK":INTURRUPT, "COP":INTURRUPT, "RTI":INTURRUPT, "STP":INTURRUPT, "WAI":INTURRUPT,
-    "CLC":P_FLAG, "CLD":P_FLAG, "CLI":P_FLAG, "CLV":P_FLAG, "REP":P_FLAG, "SEC":P_FLAG, "SED":P_FLAG, "SEP":P_FLAG, "SEI":P_FLAG, "XCE":P_FLAG,
-    "PHA":STACK, "PHX":STACK, "PHY":STACK, "PHD":STACK, "PHB":STACK, "PHK":STACK, "PHP":STACK, "PEA":STACK, "PEI":STACK, "PER":STACK, "PLA":STACK, "PLX":STACK, "PLY":STACK, "PLP":STACK, "PLD":STACK, "PLB":STACK,
-    "WDM":"RESERVED",
-    "MVN":"BLOCK_MOVE", "MVP":"BLOCK_MOVE"
-}
-
-SIZE_RULES = {"[12]":"+= !(regs.p & CpuRegisters::StatusFlag::M);",
-              "[14]":"+= !(regs.p & CpuRegisters::StatusFlag::X);"}
-
-
-
-ADDRESS_RULES = {"Immediate":"FETCH_ARG_FROM_ROM(regs.pc+1, regs.pc+size);"}
-
-EXECUTION_RULE = {"ADC":"regs.a += arg; // Temporary, will handle carry later"}
-
-
-addressModeEnum = "AddressingMode"
-addressingModes = ["NOT_IMPLEMENTED", "Immediate", "Implied"]
-
 
 
 # Pulled a big table for the SNES ISA and put it here. Using this data to generate the c++ ISA data.
 # Probably continue to modify this as things progress.
 # Table pulled from https://wiki.superfamicom.org/65816-reference
+
 OPS = [
 # "OpCode", "Args", "Proper Name", "HEX", "Addressing Mode", "Flags Set", "Bytes", "Cycles"
 ["ADC", "(dp,X)", "Add With Carry", "61", "DP Indexed Indirect,X", "NV----ZC", "2", "6[1][2]"],
@@ -308,71 +262,3 @@ OPS = [
 ["WDM", "", "Reserved for Future Expansion", "42", "", "", "2", "0[11]"],
 ["XBA", "", "Exchange B and A 8-bit Accumulators", "EB", "Implied", "N-----Z-", "1", "3"],
 ["XCE", "", "Exchange Carry and Emulation Flags", "FB", "Implied", "--MX---CE", "1", "2"]]
-
-# === helpers ===
-
-# ===== Instruction =====
-
-# Makes life easier
-class Instruction:
-    NAME_SPACE = "snes"
-
-    def __init__(self, op, parent=None):
-        self.name = str(op[0]).lower().capitalize()
-        self.description = str(op[2])
-        self.code = str(op[3])
-        self.addressMode = str(op[4])
-        self.flagsSet = str(op[5])
-        self.size = str(op[6])
-        self.cycles = str(op[7])
-
-
-# =======================
-
-def reLableDuplicates():
-    opCounts = {i[0]:0 for i in OPS}
-    for op in OPS:
-        tmp = op[0]
-        op[0] += str(opCounts[op[0]])
-        opCounts[tmp] += 1
-
-
-def generateOpCodeEnum(instructions):
-    result = ["enum OpCode"]
-    for op in sorted(instructions, key=lambda i: i.code):
-        result.append(op.name.upper() + ",")
-    result.append("};")
-    return result
-
-
-def generateOpFunction(i):
-    print("void " + i.name + "Func(CpuRegisters &regs) {")
-    print("int numCycles = " + i.cycles[0] + "; // Implement variable cycle rules later")
-    print("int size = " + i.size[0] + ";")
-    for rule in SIZE_RULES:
-        if rule in i.size:
-            print("size " + SIZE_RULES[rule])
-
-    if i.addressMode in ADDRESS_RULES:
-        print("uint32_t arg = " + ADDRESS_RULES[i.addressMode])
-    else:
-        print("uint32_t arg = 0; // Address mode not implemented: " + i.addressMode)
-    
-    if i.name[:3].upper() in EXECUTION_RULE:
-        print(EXECUTION_RULE[i.name[:3].upper()])
-    else:
-        print("// Execution not implemented")
-    print("}")
-    print()
-
-
-reLableDuplicates()
-instructions = [Instruction(o) for o in OPS]
-enum = generateOpCodeEnum(instructions)
-
-
-# for i in instructions:
-    # generateOpFunction(i)
-
-for i in enum:
-    print(i)
