@@ -8,15 +8,14 @@ namespace snes
 
     /**
      * @brief Contains all data regarding the state of the CPU
-     * 
+     *
      */
     class CpuState
     {
-        public:
-
+    public:
         /**
          * @brief Bit flags for the status register.
-         * 
+         *
          */
         enum StatusFlag
         {
@@ -72,6 +71,13 @@ namespace snes
         bool is_status_zero(void);
         Word get_status(void);
 
+        void test_negative(Word arg);
+        void test_negative(Byte arg);
+        void test_zero(Word arg);
+        void test_zero(Byte arg);
+        void test_carry_16(uint32_t arg);
+        void test_carry_8(uint32_t arg);
+
         void set_acc(Word arg);
         void set_acc(Byte arg);
 
@@ -81,48 +87,48 @@ namespace snes
         void set_x(Word arg);
         void set_x(Byte arg);
 
-        Word& acc16(void);
-        Byte& acc8(void);
+        Word &acc16(void);
+        Byte &acc8(void);
 
-        Word& y16(void);
-        Byte& y8(void);
+        Word &y16(void);
+        Byte &y8(void);
 
-        Word& x16(void);
-        Byte& x8(void);
+        Word &x16(void);
+        Byte &x8(void);
 
-        Byte& dbr(void);
-        Byte& pbr(void);
-        Word& dp(void);
-        Word& pc(void);
-        Word& stack(void);
-        Word& status(void);
+        Byte &dbr(void);
+        Byte &pbr(void);
+        Word &dp(void);
+        SnesPtr &pc(void);
+        SnesPtr &stack(void);
+        Word &status(void);
 
-        uint32_t& bus_open(void);
+        uint32_t &bus_open(void);
 
-        private:
-            
-            union VariableRegister {
-                Word data16;
-                Byte data8;
-            };
+    private:
+        union VariableRegister
+        {
+            Word data16;
+            Byte data8;
+        };
 
-            struct {
-                union VariableRegister accumulator;
-                union VariableRegister y_index;
-                union VariableRegister x_index;
-                Byte data_bank;
-                Byte program_bank;
-                Word direct_page;
-                Word program_counter;
-                Word stack_pointer;
-                Word status;
-            } reg_;
+        struct
+        {
+            union VariableRegister accumulator;
+            union VariableRegister y_index;
+            union VariableRegister x_index;
+            Byte data_bank;
+            Byte program_bank;
+            Word direct_page;
+            SnesPtr program_counter;
+            SnesPtr stack_pointer;
+            Word status;
+        } reg_;
 
-            struct {
-                uint32_t open;
-            } bus_;
-            
-
+        struct
+        {
+            uint32_t open;
+        } bus_;
     };
 } // namespace snes
 

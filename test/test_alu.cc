@@ -4,23 +4,24 @@
 
 using namespace snes;
 
-
-TEST(alu_test, adc16_arith) {
+TEST(alu_test, adc16_arith)
+{
     CpuState state;
     Alu alu(state);
 
     state.set_acc((Word)0);
-    
+
     Word expected = 0;
-    for(auto i = 0; i < 100; i++) {
+    for (auto i = 0; i < 100; i++)
+    {
         alu.add_with_carry((Word)(i * state.acc16()));
         expected += (i * expected);
         EXPECT_EQ(state.acc16(), expected);
     }
 }
 
-
-TEST(alu_test, adc16_zero_flag) {
+TEST(alu_test, adc16_zero_flag)
+{
     CpuState state;
     Alu alu(state);
     state.set_acc((Word)0);
@@ -42,7 +43,8 @@ TEST(alu_test, adc16_zero_flag) {
     EXPECT_EQ(state.acc16(), 0);
 }
 
-TEST(alu_test, adc8_zero_flag) {
+TEST(alu_test, adc8_zero_flag)
+{
     CpuState state;
     Alu alu(state);
     state.set_acc((Byte)0);
@@ -64,7 +66,8 @@ TEST(alu_test, adc8_zero_flag) {
     EXPECT_EQ(state.acc8(), 0);
 }
 
-TEST(alu_test, adc16_negative_flag) {
+TEST(alu_test, adc16_negative_flag)
+{
     CpuState state;
     Alu alu(state);
     state.set_acc((Word)0);
