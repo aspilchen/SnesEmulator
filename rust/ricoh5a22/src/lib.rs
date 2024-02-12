@@ -1,5 +1,6 @@
 use memory::Memory;
 use std::fmt;
+use bitmask::bitmask;
 
 pub enum AddressMode {
     Immediate,
@@ -10,11 +11,26 @@ pub enum Instruction {
     Error(u8),
 }
 
+bitmask! {
+    mask Status: u8 where flags PFlags {
+        N = 0b10000000, // Negative
+        V = 0b01000000, // Overflow
+        Z = 0b00000010, // Zero
+        C = 0b00000001, // Carry
+        D = 0b00001000, // Decimal
+        I = 0b00000100, // IRQ disable
+        XB = 0b00010000, // Index register size (native mode only)
+        M = 0b00100000, // Accumulator register size (native mode only)
+        // B = 0b00010000, // Break (emulation mode only) 
+        //const E 	 		    6502 emulation mode
+    }
+}
+
 pub struct Ricoh5A22 {
     a: [u8; 2],
     x: [u8; 2],
     y: [u8; 2],
-    p: u8,
+    p: Status,
     pc: usize,
     mem: Memory,
 }
@@ -25,7 +41,7 @@ impl Default for Ricoh5A22 {
             a: [0,0],
             x: [0,0],
             y: [0,0],
-            p: 0,
+            p: Status::none(),
             pc: 0,
             mem: Memory::default(),
         }
@@ -38,14 +54,13 @@ impl fmt::Display for Ricoh5A22 {
         write!(f, "A: {} {:?}\n", u16::from_le_bytes(self.a), self.a)?;
         write!(f, "X: {} {:?}\n", u16::from_le_bytes(self.x), self.x)?;
         write!(f, "Y: {} {:?}\n", u16::from_le_bytes(self.y), self.y)?;
-        write!(f, "P: {:08b}\n", self.p)?;
+        write!(f, "P: {:08b}\n", *self.p)?;
         return write!(f, "PC: {}", self.pc);
     }
 }
 
 
 impl Ricoh5A22 {
-    const CARRY_FLAG: u8 = 1;
 
     pub fn load(&mut self, binary: Vec<u8>) {
         self.mem.load(binary);
@@ -98,7 +113,7 @@ impl Ricoh5A22 {
     }
 
     pub fn set_status_carry(&mut self) {
-        self.p |= Self::CARRY_FLAG;
+        self.p.set(PFlags::C);
     }
 
     pub fn adc(&mut self, addr: &AddressMode) {
@@ -109,7 +124,11 @@ impl Ricoh5A22 {
 
     pub fn adc16(&mut self, arg: u16) {
         let acc = u16::from_le_bytes(self.a);
-        let result = acc.checked_add(arg);
+        
+        let result = 
+            if self.p.intersects(PFlags::C) {acc.checked_add(arg + 1)}
+            else {acc.checked_add(arg)};
+
         match result {
             Some(x) => self.a = x.to_le_bytes(),
             _ => {
@@ -122,7 +141,11 @@ impl Ricoh5A22 {
 
     pub fn adc8(&mut self, arg: u8) {
         let acc = self.a[0];
-        let result = acc.checked_add(arg);
+        
+        let result = 
+            if self.p.intersects(PFlags::C) {acc.checked_add(arg + 1)}
+            else {acc.checked_add(arg)};
+
         match result {
             Some(x) => self.a[0] = x,
             _ => {
@@ -131,18 +154,5 @@ impl Ricoh5A22 {
                 self.a[0] = result;
             }
         }
-    }
-
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
     }
 }
