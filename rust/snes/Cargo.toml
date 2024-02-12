@@ -1,0 +1,8 @@
+[package]
+name = "snes"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+memory = {path = "../memory"}
+ricoh5a22 = {path = "../ricoh5a22"}

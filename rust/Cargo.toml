@@ -1,0 +1,3 @@
+[workspace]
+
+members = ["snes", "memory", "ricoh5a22"]
