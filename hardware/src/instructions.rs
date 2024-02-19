@@ -2,8 +2,6 @@ use crate::state;
 use crate::cpu;
 use crate::address_modes;
 
-
-
 fn set_zero(state: &mut state::State, arg: u16) {
     let is_zero = arg == 0;
     if is_zero {
@@ -262,4 +260,3 @@ fn stz16(state: &mut state::State, address: usize) {
     let result = 0;
     cpu::write_word(state, address, result);
 }
-
