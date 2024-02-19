@@ -1,3 +1,8 @@
-The cpp folder holds my experimenting and first try at implementing the CPU for the SNES in C++. I started with that because it's a language I am familiar with, and I just wanted to get a somewhat working concept.
+# About
+SNES emulator using Rust.
 
-I then decided to move the project over to rust just to learn and practice working with rust. I plan on re-implementing the CPU and then extending the project from there. I would like to have a functional SNES emulator made entirely in rust. I may use some Python for code generation.
+The hardware library is where most of the actual SNES stuff is being implemented. I will probably make another library for the GUI eventually.
+
+Using some python scripts in the code_generation folder to generate some of the instructions.
+
+The main is just a placeholder for now. I will build some tests in the future.
