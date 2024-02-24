@@ -10,7 +10,7 @@ class OpData:
         self.name = data['name']
         self.hex = data['hex']
         self.addr = data['addr']
-        self.f_name = 'op' + data['hex'] + '_' + data['name']
+        self.f_name = data['name'].lower() + '_' + data['hex'].lower()
 
 
 def scrape_table():
