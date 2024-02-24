@@ -1,0 +1,188 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Bitmask-Enum"><title>bitmask_enum - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="bitmask_enum" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../bitmask_enum/index.html">bitmask_enum</a><span class="version">2.2.3</span></h2></div><div class="sidebar-elems"><ul class="block">
+            <li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#attributes">Attribute Macros</a></li></ul></section></div></nav><div class="sidebar-resizer"></div>
+    <main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../bitmask_enum/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">bitmask_enum</a><button id="copy-path" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="src" href="../src/bitmask_enum/lib.rs.html#1-27">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="bitmask-enum"><a href="#bitmask-enum">Bitmask-Enum</a></h2>
+<p><a href="https://docs.rs/bitmask-enum"><img src="https://docs.rs/bitmask-enum/badge.svg" alt="API" /></a> <a href="https://crates.io/crates/bitmask-enum"><img src="https://img.shields.io/crates/v/bitmask-enum.svg" alt="Crate" /></a></p>
+<p>A bitmask enum attribute macro, to turn an enum into a bitmask.</p>
+<p>A bitmask can have (un)signed integer types, the default type is <code>usize</code>.</p>
+<p>First created because I wanted something simple, evolved with inspiration from
+the <a href="https://crates.io/crates/bitflags">bitflags</a> crate, which might be something
+you want to take a look at.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitmask_enum::bitmask;
+
+<span class="attr">#[bitmask] </span><span class="comment">// usize
+</span><span class="kw">enum </span>Bitmask { <span class="comment">/* ... */ </span>}
+
+<span class="attr">#[bitmask(u8)] </span><span class="comment">// u8
+</span><span class="kw">enum </span>BitmaskU8 { <span class="comment">/* ... */ </span>}</code></pre></div>
+<h3 id="example"><a href="#example">Example</a></h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitmask_enum::bitmask;
+
+<span class="attr">#[bitmask(u8)]
+</span><span class="kw">enum </span>Bitmask {
+    Flag1, <span class="comment">// defaults to 0b00000001
+    </span>Flag2, <span class="comment">// defaults to 0b00000010
+    </span>Flag3, <span class="comment">// defaults to 0b00000100
+</span>}
+
+<span class="comment">// It is possible to impl on the bitmask and use its bits field
+</span><span class="kw">impl </span>Bitmask {
+    <span class="kw">fn </span>_set_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, val: u8) {
+        <span class="self">self</span>.bits = val
+    }
+}
+
+<span class="comment">// bitmask has const bitwise operator methods
+</span><span class="kw">const </span>CONST_BM: Bitmask = Bitmask::Flag2.or(Bitmask::Flag3);
+
+<span class="kw">fn </span>main() {
+    <span class="macro">println!</span>(<span class="string">"{:#010b}"</span>, CONST_BM); <span class="comment">// 0b00000110
+
+    // Bitmask that contains Flag1 and Flag3
+    </span><span class="kw">let </span>bm = Bitmask::Flag1 | Bitmask::Flag3;
+
+    <span class="macro">println!</span>(<span class="string">"{:#010b}"</span>, bm); <span class="comment">// 0b00000101
+
+    // Does bm intersect one of CONST_BM
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, bm.intersects(CONST_BM)); <span class="comment">// true
+
+    // Does bm contain all of CONST_BM
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, bm.contains(CONST_BM)); <span class="comment">// false
+</span>}</code></pre></div>
+<h3 id="custom-values"><a href="#custom-values">Custom Values</a></h3>
+<p>You can assign any flag a custom value.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitmask_enum::bitmask;
+
+<span class="attr">#[bitmask(u8)]
+</span><span class="kw">enum </span>Bitmask {
+    Flag1, <span class="comment">// defaults to 0b00000001
+
+    </span>CustomFlag3 = <span class="number">0b00000100</span>,
+
+    Flag2, <span class="comment">// defaults to 0b00000010
+    </span>Flag3, <span class="comment">// defaults to 0b00000100
+
+    </span>Flag13_1 = <span class="number">0b00000001 </span>| <span class="number">0b00000100</span>,
+    Flag13_2 = <span class="self">Self</span>::Flag1.or(<span class="self">Self</span>::Flag3).bits,
+    Flag13_3 = <span class="self">Self</span>::Flag1.bits | <span class="self">Self</span>::CustomFlag3.bits,
+
+    Flag123 = {
+        <span class="kw">let </span>flag13 = <span class="self">Self</span>::Flag13_1.bits;
+        flag13 | <span class="self">Self</span>::Flag2.bits
+    },
+}
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>bm = Bitmask::Flag1 | Bitmask::Flag3;
+
+    <span class="macro">println!</span>(<span class="string">"{:#010b}"</span>, bm); <span class="comment">// 0b00000101
+    </span><span class="macro">println!</span>(<span class="string">"{}"</span>, bm == Bitmask::Flag13_1); <span class="comment">// true
+
+    </span><span class="macro">println!</span>(<span class="string">"{:#010b}"</span>, Bitmask::Flag123); <span class="comment">// 0b00000111
+</span>}</code></pre></div>
+<h3 id="bitmask-config"><a href="#bitmask-config">Bitmask Config</a></h3>
+<p>It is possible to add custom bitmask config options via the <code>#[bitmask_config(...)]</code> macro. (Just add it below the <code>#[bitmask]</code> macro)</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitmask_enum::bitmask;
+
+<span class="attr">#[bitmask(u8)]
+#[bitmask_config(inverted_flags)]
+</span><span class="kw">enum </span>Bitmask {
+    Flag1, <span class="comment">// defaults to 0b00000001
+</span>}
+
+<span class="attr">#[bitmask(u8)]
+#[bitmask_config(vec_debug)]
+</span><span class="kw">enum </span>BitmaskVecDebug {
+    Flag1,
+    Flag2,
+}
+
+<span class="kw">fn </span>main() {
+    <span class="macro">println!</span>(<span class="string">"{:#010b}"</span>, Bitmask::Flag1); <span class="comment">// 0b00000001
+    </span><span class="macro">println!</span>(<span class="string">"{:#010b}"</span>, Bitmask::InvertedFlag1); <span class="comment">// 0b11111110
+
+    </span><span class="macro">println!</span>(<span class="string">"{:?}"</span>, BitmaskVecDebug::none()); <span class="comment">// BitmaskVecDebug[]
+    </span><span class="macro">println!</span>(<span class="string">"{:?}"</span>, BitmaskVecDebug::Flag1); <span class="comment">// BitmaskVecDebug[Flag1]
+    </span><span class="macro">println!</span>(<span class="string">"{:?}"</span>, BitmaskVecDebug::full()); <span class="comment">// BitmaskVecDebug[Flag1, Flag2]
+</span>}</code></pre></div>
+<h4 id="available-config-options"><a href="#available-config-options">Available Config Options</a></h4>
+<ul>
+<li><code>inverted_flags</code> =&gt; Adds an inverted flag for every non-inverted flag to the bitmask.</li>
+<li><code>vec_debug</code> =&gt; Replaces the default Debug trait implementation with a custom one that prints the bitmask as a vec of all matching values.</li>
+</ul>
+<p>If you need / can think of any other config option, feel free to suggest them and we can discuss implementing them.</p>
+<h3 id="implemented-methods"><a href="#implemented-methods">Implemented Methods</a></h3>
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="comment">// Returns the underlying bits of the bitmask.
+</span><span class="kw">const fn </span>bits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; #<span class="kw">type</span>;
+
+<span class="comment">// Returns a bitmask that contains all values.
+//
+// This will include bits that do not have any flags.
+// Use `::full()` if you only want to use flags.
+</span><span class="kw">const fn </span>all() -&gt; <span class="self">Self</span>;
+
+<span class="comment">// Returns `true` if the bitmask contains all values.
+//
+// This will check for `bits == !0`,
+// use `.is_full()` if you only want to check for all flags
+</span><span class="kw">const fn </span>is_all(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
+
+<span class="comment">// Returns a bitmask that does not contain any values.
+</span><span class="kw">const fn </span>none() -&gt; <span class="self">Self</span>;
+
+<span class="comment">// Returns `true` if the bitmask does not contain any values.
+</span><span class="kw">const fn </span>is_none(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
+
+<span class="comment">// Returns a bitmask that contains all flags.
+</span><span class="kw">const fn </span>full() -&gt; <span class="self">Self</span>;
+
+<span class="comment">// Returns `true` if the bitmask contains all flags.
+//
+// This will fail if any unused bit is set,
+// consider using `.truncate()` first.
+</span><span class="kw">const fn </span>is_full(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
+
+<span class="comment">// Returns a bitmask that only has bits corresponding to flags
+</span><span class="kw">const fn </span>truncate(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>;
+
+<span class="comment">// Returns `true` if `self` intersects with any value in `other`,
+// or if `other` does not contain any values.
+// This is equivalent to `(self &amp; other) != 0 || other == 0`.
+</span><span class="kw">const fn </span>intersects(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="self">Self</span>) -&gt; bool;
+
+<span class="comment">// Returns `true` if `self` contains all values of `other`.
+// This is equivalent to  `(self &amp; other) == other`.
+</span><span class="kw">const fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="self">Self</span>) -&gt; bool;
+
+<span class="comment">// Constant bitwise operations.
+</span><span class="kw">const fn </span>not(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+<span class="kw">const fn </span>and(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+<span class="kw">const fn </span>or(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+<span class="kw">const fn </span>xor(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;</code></pre></div>
+<h3 id="implemented-traits"><a href="#implemented-traits">Implemented Traits</a></h3>
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="attr">#[repr(transparent)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+
+</span><span class="kw">impl </span>core::ops::Not;
+
+<span class="kw">impl </span>core::ops::BitAnd;
+<span class="kw">impl </span>core::ops::BitAndAssign;
+
+<span class="kw">impl </span>core::ops::BitOr;
+<span class="kw">impl </span>core::ops::BitOrAssign;
+
+<span class="kw">impl </span>core::ops::BitXor;
+<span class="kw">impl </span>core::ops::BitXorAssign;
+
+<span class="kw">impl </span>From&lt;#<span class="kw">type</span>&gt; <span class="kw">for </span>#ident;
+<span class="kw">impl </span>From&lt;#ident&gt; <span class="kw">for </span>#<span class="kw">type</span>;
+
+<span class="kw">impl </span>PartialEq&lt;#<span class="kw">type</span>&gt;;
+
+<span class="kw">impl </span>core::fmt::Binary;
+<span class="kw">impl </span>core::fmt::LowerHex;
+<span class="kw">impl </span>core::fmt::UpperHex;
+<span class="kw">impl </span>core::fmt::Octal;</code></pre></div>
+</div></details><h2 id="attributes" class="section-header"><a href="#attributes">Attribute Macros</a></h2><ul class="item-table"><li><div class="item-name"><a class="attr" href="attr.bitmask.html" title="attr bitmask_enum::bitmask">bitmask</a></div><div class="desc docblock-short">Bitmask-Enum</div></li></ul></section></div></main></body></html>
