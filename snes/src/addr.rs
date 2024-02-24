@@ -69,7 +69,7 @@ pub fn immediate16(state: &mut State) -> SnesAddress {
 pub fn direct(state: &mut State) -> SnesAddress {
     let address = cpu::fetch_byte(state);
     let d = state.d;
-    let address = d + address as u16;
+    let address = d.wrapping_add(address as u16);
     let result = SnesAddress::from((0, address));
     return result;
 }

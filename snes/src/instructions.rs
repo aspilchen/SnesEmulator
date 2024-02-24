@@ -120,25 +120,23 @@ pub fn cop_02(state: &mut State) {
 }
 
 pub fn jmp_4c(state: &mut State) {
-    let result = addr::absolute(state);
-    state.pc = result;
+    let new_address = cpu::fetch_word(state);
+    state.pc.set_address(new_address);
 }
 
 pub fn jmp_5c(state: &mut State) {
-    let result = addr::absolute_long(state);
-    state.pc = result;
+    let new_address = addr::absolute_long(state);
+    state.pc = new_address;
 }
 
 pub fn jmp_6c(state: &mut State) {
-    let result = addr::absolute_indirect(state);
-    state.pc = result;
+    let new_address = addr::absolute_indirect(state);
+    state.pc.set_address(new_address.get_address());
 }
 
 pub fn jmp_7c(state: &mut State) {
-    let address = addr::absolute_indexed_x(state);
-    let index = state.x.get_16();
-    let result = address + index;
-    state.pc = result;
+    let new_address = addr::absolute_indexed_indirect(state);
+    state.pc.set_address(new_address.get_address());
 }
 
 pub fn jmp_dc(state: &mut State) {
@@ -146,21 +144,26 @@ pub fn jmp_dc(state: &mut State) {
 }
 
 pub fn jsr_20(state: &mut State) {
-    let new_addr = cpu::fetch_word(state);
+    let new_address = cpu::fetch_word(state);
     let curr_addr = state.pc.get_address();
     cpu::push_word(state, curr_addr);
-    state.pc.set_address(new_addr);
+    state.pc.set_address(new_address);
 }
 
 pub fn jsr_22(state: &mut State) {
     let new_addr = addr::absolute_long(state);
+    let curr_bank = state.pc.get_bank();
     let curr_addr = state.pc.get_address();
+    cpu::push_byte(state, curr_bank);
     cpu::push_word(state, curr_addr);
     state.pc = new_addr;
 }
 
 pub fn jsr_fc(state: &mut State) {
-    todo!();
+    let new_address = addr::absolute_indexed_indirect(state);
+    let curr_addr = state.pc.get_address();
+    cpu::push_word(state, curr_addr);
+    state.pc.set_address(new_address.get_address());
 }
 
 pub fn mvn_54(state: &mut State) {
@@ -172,7 +175,8 @@ pub fn mvp_44(state: &mut State) {
 }
 
 pub fn nop_ea(state: &mut State) {
-    todo!();
+    let cycle_count = 2;
+    cpu::add_cycles(state, cycle_count);
 }
 
 pub fn pea_f4(state: &mut State) {
@@ -194,80 +198,85 @@ pub fn per_62(state: &mut State) {
 
 pub fn pha_48(state: &mut State) {
     if state.p.is_set_m() {
+        let value = state.a.get_8();
+        cpu::push_byte(state, value);
     } else {
-        let arg = state.a.get_16();
-        cpu::push_word(state, arg);
+        let value = state.a.get_16();
+        cpu::push_word(state, value);
     }
 }
 
 pub fn phb_8b(state: &mut State) {
-    let arg = state.dbr;
-    cpu::push_byte(state, arg);
+    let value = state.dbr;
+    cpu::push_byte(state, value);
 }
 
 pub fn phd_0b(state: &mut State) {
-    let arg = state.d;
-    cpu::push_word(state, arg);
+    let value = state.d;
+    cpu::push_word(state, value);
 }
 
 pub fn phk_4b(state: &mut State) {
-    let arg = state.get_pbr();
-    cpu::push_byte(state, arg);
+    let value = state.get_pbr();
+    cpu::push_byte(state, value);
 }
 
 pub fn php_08(state: &mut State) {
-    let arg = state.p.bits();
-    cpu::push_byte(state, arg);
+    let value = state.p.bits();
+    cpu::push_byte(state, value);
 }
 
 pub fn phx_da(state: &mut State) {
     if state.p.is_set_x() {
-        todo!();
+        let value = state.x.get_8();
+        cpu::push_byte(state, value);
     } else {
-        let arg = state.x.get_16();
-        cpu::push_word(state, arg);
+        let value = state.x.get_16();
+        cpu::push_word(state, value);
     }
 }
 
 pub fn phy_5a(state: &mut State) {
     if state.p.is_set_x() {
-        todo!();
+        let value = state.y.get_8();
+        cpu::push_byte(state, value);
     } else {
-        let arg = state.y.get_16();
-        cpu::push_word(state, arg);
+        let value = state.y.get_16();
+        cpu::push_word(state, value);
     }
 }
 
 pub fn pla_68(state: &mut State) {
     if state.p.is_set_m() {
-        todo!();
+        let value = cpu::pop_byte(state);
+        state.a.set_8(value);
     } else {
-        let result = cpu::pop_word(state);
-        state.a.set_16(result);
+        let value = cpu::pop_word(state);
+        state.a.set_16(value);
     }
 }
 
 pub fn plb_ab(state: &mut State) {
-    let result = cpu::pop_byte(state);
-    state.dbr = result;
+    let value = cpu::pop_byte(state);
+    state.dbr = value;
 }
 
 pub fn pld_2b(state: &mut State) {
-    let result = cpu::pop_word(state);
-    state.d = result;
+    let value = cpu::pop_word(state);
+    state.d = value;
 }
 
 pub fn plp_28(state: &mut State) {
-    let result = cpu::pop_byte(state);
-    state.p.set_status_bits(result);
+    let value = cpu::pop_byte(state);
+    state.p.set_status_bits(value);
 }
 
 pub fn plx_fa(state: &mut State) {
     if state.p.is_set_x() {
         todo!();
     } else {
-        let result = cpu::pop_word(state);
-        state.x.set_16(result);
+        let value = cpu::pop_word(state);
+        state.x.set_16(value);
     }
 }
 
@@ -275,8 +284,8 @@ pub fn ply_7a(state: &mut State) {
     if state.p.is_set_x() {
         todo!();
     } else {
-        let result = cpu::pop_word(state);
-        state.y.set_16(result);
+        let value = cpu::pop_word(state);
+        state.y.set_16(value);
     }
 }
 
@@ -290,27 +299,40 @@ pub fn rti_40(state: &mut State) {
 }
 
 pub fn rtl_6b(state: &mut State) {
-    todo!();
+    let new_addr = cpu::pop_word(state);
+    let new_bank = cpu::pop_byte(state);
+    let new_address = SnesAddress::from((new_bank, new_addr));
+    state.pc = new_address;
 }
 
 pub fn rts_60(state: &mut State) {
-    todo!();
+    let new_addr = cpu::pop_word(state);
+    state.pc.set_address(new_addr);
 }
 
 pub fn sec_38(state: &mut State) {
-    todo!();
+    state.p.set_c();
+    let cycle_count = 2;
+    cpu::add_cycles(state, cycle_count);
 }
 
 pub fn sed_f8(state: &mut State) {
-    todo!();
+    state.p.set_d();
+    let cycle_count = 2;
+    cpu::add_cycles(state, cycle_count);
 }
 
 pub fn sei_78(state: &mut State) {
-    todo!();
+    state.p.set_i();
+    let cycle_count = 2;
+    cpu::add_cycles(state, cycle_count);
 }
 
 pub fn sep_e2(state: &mut State) {
-    todo!();
+    let arg = cpu::fetch_byte(state);
+    state.p.set_status_bits(arg);
+    let cycle_count = 2;
+    cpu::add_cycles(state, cycle_count);
 }
 
 pub fn stp_db(state: &mut State) {
@@ -326,7 +348,9 @@ pub fn wdm_42(state: &mut State) {
 }
 
 pub fn xba_eb(state: &mut State) {
-    todo!();
+    state.a.swap_bytes();
+    let cycle_count = 3;
+    cpu::add_cycles(state, cycle_count);
 }
 
 pub fn xce_fb(state: &mut State) {

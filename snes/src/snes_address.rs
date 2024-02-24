@@ -7,6 +7,8 @@
 
 use std::ops::Add;
 
+use crate::memory;
+
 /// Three byte address
 ///
 /// All addresses are created by combining a bank byte with two
@@ -62,7 +64,7 @@ impl From<usize> for SnesAddress {
 impl From<&SnesAddress> for usize {
     /// Cast to usize
     ///
-    /// Uses the data to form a usize for memory indexing
+    /// Combines the bank and address to form a [usize] for indexing.
     ///
     /// # Params
     /// * `value` - &[SnesAddress]
@@ -82,7 +84,7 @@ impl From<&SnesAddress> for usize {
 impl From<SnesAddress> for usize {
     /// Cast to usize
     ///
-    /// Uses the data to form a usize for memory indexing
+    /// Combines the bank and address to form a [usize] for indexing.
     ///
     /// # Params
     /// * `value` - [SnesAddress]
@@ -125,6 +127,11 @@ impl SnesAddress {
     pub fn get_address(&self) -> u16 {
         return self.addr;
     }
+    
+    pub fn get_page(&self) -> u8 {
+        let result = self.addr >> memory::BITS_IN_WORD;
+        return result as u8;
+    }
 
     pub fn set_bank(&mut self, bank: u8) {
         self.bank = bank;
@@ -133,4 +140,12 @@ impl SnesAddress {
     pub fn set_address(&mut self, address: u16) {
         self.addr = address;
     }
+
+    pub fn set_page(&mut self, page: u8) {
+        let page = (page as u16) << memory::BITS_IN_WORD;
+        let page_mask = 0x00FF;
+        self.addr &= page_mask;
+        self.addr |= page;
+    }
+
 }

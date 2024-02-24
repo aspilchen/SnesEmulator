@@ -5,6 +5,7 @@ use crate::memory::{self, ONE_BYTE};
 use crate::snes_address::SnesAddress;
 use crate::state::State;
 
+
 /// Program counter
 ///
 /// Increments [`State::pc`] by `amount`
