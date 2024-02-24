@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["bitmask_enum","main","proc_macro2","quote","snes","syn","unicode_ident"];
+window.ALL_CRATES = ["main","snes"];
