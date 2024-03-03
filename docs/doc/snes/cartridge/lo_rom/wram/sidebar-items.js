@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["BANK_SHIFT","BLOCK_SIZE","FIRST_BANK","LAST_BANK","MAX_SIZE"],"fn":["in_bounds","map_address"],"mod":["mirror"]};

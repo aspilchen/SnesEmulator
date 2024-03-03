@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 bitmask-enum = "2.2.3"
+debug_print = "1.0.0"

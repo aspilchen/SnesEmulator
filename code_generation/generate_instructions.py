@@ -2,90 +2,118 @@ from op_data import *
 
 
 def op_mem(name):
-    return f'{name}(state, &address)'
+    return f'{name}(sys, address)'
 
 def op_implied(name):
-    return f'{name}(state)'
+    return f'{name}(sys)'
 
-def multiple_output(data: OpData, base_name, size):
+def multiple_output(data: OpData, base_name):
     name = base_name
     match data.addr:
         case 'Accumulator':
-            name = f'{base_name}_acc{size}(state)'
+            name = f'{base_name}a(sys)'
         case _:
-            name = f'{base_name}_mem{size}(state, &address)'
+            name = f'{base_name}(sys, address)'
     return name
 
 def flag_condition(flag):
-    return f'state.p.is_set_{flag}()'
+    return f'cpu::status_flags::is_set_{flag}(&sys.cpu)'
 
-def get_address(addr_str):
-    result = "let address = addr::"
-    match addr_str:
+
+def get_debug_statement(data: OpData):
+    result = ''
+    value = '<todo>'
+
+    match data.addr:
         case "Immediate":
-            result += "immediate16(state)"
+            result = f'{data.name} #&{value}'
 
         case "Direct Page":
-            result += "direct(state)"
-        case "DP Indexed,X":
-            result += " direct_indexed_x(state)"
-        case "DP Indexed,Y":
-            result += " direct_indexed_y(state)"
-        case "DP Indexed Indirect,X":
-            result += "direct_indexed_indirect(state)"
+            result = f'{data.name} &{value}'
+        case "Absolute":
+            result = f'{data.name} &{value}'
+        case _:
+            result = f'{data.name}' 
 
-        case "DP Indirect":
-            result += "direct_indirect(state)"
-        case "DP Indirect Indexed, Y":
-            result += "direct_indirect_indexed(state)"
-        case "DP Indirect Long":
-            result += "direct_indirect_long(state)"
+    return result
+    
+
+
+def get_address(addr_str):
+    name = "let address = address_mode::"
+    params = "(sys)"
+    result = ''
+
+    match addr_str:
+        case "Immediate":
+            name += "immediate16"
+
+        case "Direct Page":
+            name += "direct"
+        # case "DP Indexed,X":
+        #     name += " direct_indexed_x"
+        # case "DP Indexed,Y":
+        #     name += " direct_indexed_y"
+        # case "DP Indexed Indirect,X":
+        #     name += "direct_indexed_indirect"
+
+        # case "DP Indirect":
+        #     name += "direct_indirect"
+        # case "DP Indirect Indexed, Y":
+        #     name += "direct_indirect_indexed"
+        # case "DP Indirect Long":
+        #     name += "direct_indirect_long"
         # case "DP Indirect Long Indexed, Y":
-        #     result += "direct_indirect_long_indexed(state)"
+        #     name += "direct_indirect_long_indexed(state)"
 
         case "Absolute":
-            result += "absolute(state)"
-        case "Absolute Indexed,Y":
-            result += "absolute_indexed_y(state)"
-        case "Absolute Indexed,X":
-            result += "absolute_indexed_x(state)"
-        case "Absolute Long":
-            result += "absolute_long(state)"
-        case "Absolute Long Indexed,X":
-            result += "absolute_long_indexed(state)"
+            name += "absolute"
+        # case "Absolute Indexed,Y":
+        #     name += "absolute_indexed_y"
+        # case "Absolute Indexed,X":
+        #     name += "absolute_indexed_x"
+        # case "Absolute Long":
+        #     name += "absolute_long(state)"
+        # case "Absolute Long Indexed,X":
+        #     name += "absolute_long_indexed"
 
         case "Stack Relative":
-            result += "stack_relative(state)"
+            name += "stack_relative"
         # case "SR Indirect Indexed,Y":
-        #     result += "direct_indirect_indexed(state)"
+        #     name += "direct_indirect_indexed(state)"
             
         case "Program Counter Relative":
-            result += "pc_relative(state)"
+            name += "pc_relative"
         case _:
-            result = f'todo!(\"implement {addr_str}\")' 
+            return f'let address = 0; //todo: implement {addr_str}' 
+    result = name + params
     return result
 
 
-def generate_conditional_instruction(data, condition, func_a, func_b):
+def generate_conditional_instruction(data, condition, func):
+    debug_str = get_debug_statement(data)
     result = [
-        f'pub fn {data.f_name}(state: &mut State)' + " {",
+        f'pub fn {data.f_name}(sys: &mut Snes)' + " {",
+        f'   debug_println!(\"{debug_str}\");',
         f'   {get_address(data.addr)};',
         f'   if {condition} ' + '{',
-        f'       // {func_a};',
+        f'       helpers_8::{func}(sys, address);',
         '   } else {',
-        f'       {func_b};',
+        f'       helpers_16::{func}(sys, address);',
         '   }',
         "}",
     ]
     return result
 
-def generate_implied_conditional(data, condition, func_a, func_b):
+def generate_implied_conditional(data, condition, func):
+    debug_str = get_debug_statement(data)
     result = [
-        f'pub fn {data.f_name}(state: &mut State)' + " {",
+        f'pub fn {data.f_name}(sys: &mut Snes)' + " {",
+        f'   debug_println!(\"{debug_str}\");',
         f'   if {condition} ' + '{',
-        f'       // {func_a};',
+        f'       helpers_8::{func}(sys);',
         '   } else {',
-        f'       {func_b};',
+        f'       helpers_16::{func};',
         '   }',
         "}",
     ]
@@ -93,24 +121,49 @@ def generate_implied_conditional(data, condition, func_a, func_b):
 
 
 def generate_simple_instruction(data, func):
+    debug_str = get_debug_statement(data)
     result = [
-        f'pub fn {data.f_name}(state: &mut State)' + " {",
+        f'pub fn {data.f_name}(sys: &mut Snes)' + " {",
+        f'   debug_println!(\"{debug_str}\");',
         f'  {get_address(data.addr)};',
-        f'  {func}(state, address)',
+        f'  {func}(sys, address)',
         "}",
     ]
     return result
 
 
 def generate_empty_function(data: OpData):
+    debug_str = get_debug_statement(data)
     result = [
-    f'pub fn {data.f_name}(state: &mut State)' + " {",
-    f'  // TODO: implement {data.f_name}',
+    f'pub fn {data.f_name}(sys: &mut Snes)' + " {",
+    f'   debug_println!(\"{debug_str}\");',
+    f'  // todo!();',
     "}",
     ]
     return result
 
 def generate_function(data: OpData):
+    basic_conditionals = {
+        'ADC', 'SBC', 'AND', 'EOR', 'ORA', 'TSB', 'TRB', 'BIT', 'CMP', 'CPX', 'CPY',
+        'DEC', 'INC', 'LDA', 'LDX', 'LDY', 'STA', 'STX', 'STY', 'STZ', 
+    }
+
+    conditions = {
+        'm': ['ADC', 'SBC', 'AND', 'EOR', 'ORA', 'TSB', 'TRB', 'BIT', 'CMP','DEC', 'INC', 'LDA','STA','STZ'],
+        'x': [ 'CPX', 'CPY','LDX', 'LDY','STX', 'STY',]
+    }
+
+    result = generate_empty_function(data)
+
+    if data.name in basic_conditionals:
+        condition = ''
+        if data.name in conditions['m']:
+            condition = flag_condition('m')
+        else:
+            condition = flag_condition('x')
+        return generate_conditional_instruction(data, condition, data.name.lower())
+    
+    return result
 
     condition = flag_condition('m')
     fun_a = ''
@@ -118,8 +171,8 @@ def generate_function(data: OpData):
 
     match data.name:
         case "ADC": 
-            fun_a = op_mem('adc8')
-            fun_b = op_mem('adc16')
+            fun_a = op_mem('adc')
+            fun_b = op_mem('adc')
         case "SBC": 
             fun_a = op_mem("sbc8")
             fun_b = op_mem("sbc16")
@@ -214,42 +267,42 @@ def generate_function(data: OpData):
         case "STZ":
             fun_a = op_mem("stz8")
             fun_b = op_mem("stz16")
-        case "TAX":
-            fun_a = op_implied("tax8")
-            fun_b = op_implied("tax16")
-        case "TAY":
-            fun_a = op_implied("tay8")
-            fun_b = op_implied("tay16")
-        case "TCD":
-            fun_a = op_implied("tcd8")
-            fun_b = op_implied("tcd16")
-        case "TCS":
-            fun_a = op_implied("tcs8")
-            fun_b = op_implied("tcs16")
-        case "TDC":
-            fun_a = op_implied("tdc8")
-            fun_b = op_implied("tdc16")
-        case "TSC":
-            fun_a = op_implied("tsc8")
-            fun_b = op_implied("tsc16")
-        case "TSX":
-            fun_a = op_implied("tsx8")
-            fun_b = op_implied("tsx16")
-        case "TXA":
-            fun_a = op_implied("txa8")
-            fun_b = op_implied("txa16")
-        case "TXS":
-            fun_a = op_implied("txs8")
-            fun_b = op_implied("txs16")
-        case "TXY":
-            fun_a = op_implied("txy8")
-            fun_b = op_implied("txy16")
-        case "TYA":
-            fun_a = op_implied("tya8")
-            fun_b = op_implied("tya16")
-        case "TYX":
-            fun_a = op_implied("tyx8")
-            fun_b = op_implied("tyx16")
+        # case "TAX":
+        #     fun_a = op_implied("tax8")
+        #     fun_b = op_implied("tax16")
+        # case "TAY":
+        #     fun_a = op_implied("tay8")
+        #     fun_b = op_implied("tay16")
+        # case "TCD":
+        #     fun_a = op_implied("tcd8")
+        #     fun_b = op_implied("tcd16")
+        # case "TCS":
+        #     fun_a = op_implied("tcs8")
+        #     fun_b = op_implied("tcs16")
+        # case "TDC":
+        #     fun_a = op_implied("tdc8")
+        #     fun_b = op_implied("tdc16")
+        # case "TSC":
+        #     fun_a = op_implied("tsc8")
+        #     fun_b = op_implied("tsc16")
+        # case "TSX":
+        #     fun_a = op_implied("tsx8")
+        #     fun_b = op_implied("tsx16")
+        # case "TXA":
+        #     fun_a = op_implied("txa8")
+        #     fun_b = op_implied("txa16")
+        # case "TXS":
+        #     fun_a = op_implied("txs8")
+        #     fun_b = op_implied("txs16")
+        # case "TXY":
+        #     fun_a = op_implied("txy8")
+        #     fun_b = op_implied("txy16")
+        # case "TYA":
+        #     fun_a = op_implied("tya8")
+        #     fun_b = op_implied("tya16")
+        # case "TYX":
+        #     fun_a = op_implied("tyx8")
+        #     fun_b = op_implied("tyx16")
         case _:
             return None
     

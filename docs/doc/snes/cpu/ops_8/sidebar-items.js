@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["adc","and","asl","bit","compare","dec","eor","inc","lda","ldx","ldy","lsr","ora","rol","ror","sbc","set_zn","trb","tsb"]};

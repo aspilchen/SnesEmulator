@@ -1,8 +1,6 @@
-pub mod snes_address;
-pub mod multi_register;
 pub mod memory;
 pub mod cpu;
-pub mod state;
-pub mod status;
-pub mod addr;
+pub mod address_mode;
 pub mod instructions;
+pub mod snes;
+pub mod cartridge;

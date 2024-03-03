@@ -2,7 +2,7 @@ from op_data import *
 
 
 def generate_case(data: OpData):
-    return f'0x{data.hex} => {data.f_name}(state)'
+    return f'0x{data.hex} => {data.f_name}(sys)'
 
 
 

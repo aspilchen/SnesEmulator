@@ -1,509 +1,733 @@
-//! CPU functions such as fetch, read and execute are found here.
+//! CPU State
 
-use crate::instructions::*;
-use crate::memory::{self, ONE_BYTE};
-use crate::snes_address::SnesAddress;
-use crate::state::State;
+use core::fmt;
 
+use bitmask_enum::bitmask;
 
-/// Program counter
+use crate::memory::{self, Memory};
+
+/// Status flags for the CPU
 ///
-/// Increments [`State::pc`] by `amount`
-///
-/// # Todo
-/// * Handle incrementing the PBR
-pub fn increment_pc(state: &mut State, amount: u16) {
-    let mut address = state.pc.get_address();
-    address += amount;
-    state.pc.set_address(address);
+/// Flag names are taken from SNES hardware manuals.
+/// The emulation flag is hidden, will be handled later.
+#[bitmask(u8)]
+pub enum Status {
+    /// Carry
+    C = 0b00000001,
+
+    /// Zero
+    Z = 0b00000010,
+
+    /// IRQ
+    I = 0b00000100,
+
+    /// Decimal mode
+    D = 0b00001000,
+
+    /// In native mode
+    /// - Index register size
+    /// In emulation mode
+    /// - Break
+    XB = 0b00010000,
+
+    /// Memory mode
+    M = 0b00100000,
+
+    /// Overflow
+    V = 0b01000000,
+
+    /// Negative
+    N = 0b10000000,
+    // 6502 emulation mode
+    // E
 }
 
-/// Stack pointer
-///
-/// * Increment [`State::s`] by `amount`
-///
-/// # Todo
-/// *  Handle incrementing the stack bank
-pub fn increment_stack(state: &mut State, amount: u16) {
-    let address = state.s.get_address() + amount;
-    state.s.set_address(address);
-    // todo!("Handle stack bank");
+/// Cpu State
+pub struct Cpu {
+    /// Accumulator
+    pub a: [u8; 2],
+
+    /// Index
+    pub x: [u8; 2],
+
+    /// Index
+    pub y: [u8; 2],
+
+    /// Stack Pointer
+    pub s: u16,
+
+    /// Data Bank
+    pub dbr: u8,
+
+    /// Direct Page Register
+    pub d: u16,
+
+    /// Program Bank
+    pub pbr: u8,
+
+    /// Status Register
+    ///
+    /// Status bits used for comparison operations and to
+    /// control CPU behaviour.
+    pub p: Status,
+
+    /// Program Counter
+    pub pc: u16,
+
+    /// Emulation Flag
+    ///
+    /// Hidden flag to control emulation mode.
+    /// When in emulation mode, system behaves like the NES.
+    ///
+    /// # Note
+    /// As far as I can tell the SNES was meant to be backwards compatible
+    /// with NES games, but this feature was never used. For now I will just
+    /// be working with the native mode, and will not spend much time handling
+    /// emulation features.
+    pub e: bool,
+
+    /// Cycle Count
+    pub cycles: i32,
 }
 
-/// Stack pointer
-///
-/// * Decrement [`State::s`] by `amount`
-///
-/// # Todo
-///  Handle incrementing the stack bank.
-pub fn decrement_stack(state: &mut State, amount: u16) {
-    let address = state.s.get_address() - amount;
-    state.s.set_address(address);
+impl Default for Cpu {
+    fn default() -> Self {
+        Self {
+            a: [0, 0],
+            x: [0, 0],
+            y: [0, 0],
+            s: 0x0100,
+            dbr: 0,
+            d: 0,
+            pbr: 0,
+            p: Status::none(),
+            pc: 0,
+            e: false,
+            cycles: 0,
+        }
+    }
 }
 
-/// CPU cycles
-///
-/// * Increment [`State::cycles`] by n_cycles
-pub fn add_cycles(state: &mut State, n_cycles: u32) {
-    state.cycles += n_cycles;
+impl fmt::Display for Cpu {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "------------------------\n")?;
+        write!(
+            f,
+            "| A [0x{:02X}, 0x{:02X}] {:<6}|\n",
+            self.a[0],
+            self.a[1],
+            registers_16::get_a(self)
+        )?;
+        write!(
+            f,
+            "| X [0x{:02X}, 0x{:02X}] {:<6}|\n",
+            self.x[0],
+            self.x[1],
+            registers_16::get_x(self)
+        )?;
+        write!(
+            f,
+            "| Y [0x{:02X}, 0x{:02X}] {:<6}|\n",
+            self.y[0],
+            self.y[1],
+            registers_16::get_y(self)
+        )?;
+        write!(f, "------------------------\n")?;
+        write!(f, "| {:<5}{:<5}{:<5}{:<6}|\n", 'S', 'D', "DBR", "Cycle")?;
+        write!(
+            f,
+            "| {:<5}{:<5}{:<5}{:<6}|\n",
+            self.s, self.d, self.dbr, self.cycles
+        )?;
+        write!(f, "------------------------\n")?;
+        write!(f, "|{:>10}:{:<11}|\n", "PBR", "PC")?;
+        write!(f, "| hex    {:>02x}:{:<04x}       |\n", self.pbr, self.pc)?;
+        write!(f, "------------------------\n")?;
+        write!(f, "|{:>11}{:<11}|\n", "P", "")?;
+        write!(f, "|       {:08b}       |\n", self.p)?;
+        write!(f, "------------------------\n")
+    }
 }
 
-/// Memory read
-///
-/// * Read two bytes from memory at address
-/// * Counts cycles
-/// * Does *not* increment program counter
-///
-/// # Todo
-/// * Adjust cycle count depending on type of memory acccess
-///
-/// # Params
-/// * `state` - Current system state
-/// * `address` - Source address to read from
-///
-/// # Returns
-/// Two bytes from memory at address location
-pub fn read_word(state: &mut State, address: &SnesAddress) -> u16 {
-    let result = memory::get_word(state, address);
-    add_cycles(state, 2);
+pub fn add_cycles(cpu: &mut Cpu, amount: i32) {
+    cpu.cycles += amount;
+}
+
+pub fn get_pc_address(cpu: &Cpu) -> usize {
+    let bank = cpu.pbr as usize;
+    let offset = cpu.pc as usize;
+    let result = (bank << 16) + offset;
     return result;
 }
 
-/// Memory read
-///
-/// * Read one byte from memory at address
-/// * Counts cycles
-/// * Does *not* increment program counter
-///
-/// # Todo
-/// * Adjust cycle count depending on type of memory access
-///
-/// # Params
-/// * `state` - Current system state
-/// * `address` - Source address to read from
-///
-/// # Returns
-/// One byte from memory at address location
-pub fn read_byte(state: &mut State, address: &SnesAddress) -> u8 {
-    let result = memory::get_byte(&state, address);
-    add_cycles(state, 1);
-    return result;
+pub fn set_pc_address(cpu: &mut Cpu, value: usize) {
+    let bank = (value >> 16) as u8;
+    let offset = value as u16;
+    cpu.pbr = bank;
+    cpu.pc = offset;
 }
 
-/// Memory read
-///
-/// * Fetches next word from memory at [`State::pc`]
-/// * Counts cycles
-/// * Increments [`State::pc`]
-///
-/// # Params
-/// * `state` - Current system state
-///
-/// # Returns
-/// Next two byte from program counter address
-pub fn fetch_word(state: &mut State) -> u16 {
-    let result = memory::get_word(&state, &state.pc);
-    let cycle_count = 2;
-    add_cycles(state, cycle_count);
-    increment_pc(state, memory::BYTES_IN_WORD);
-    return result;
+/// Set/Get status bits
+pub mod status_flags {
+    use super::*;
+
+    pub fn is_set_c(cpu: &Cpu) -> bool {
+        return cpu.p.intersects(Status::C);
+    }
+
+    pub fn is_set_m(cpu: &Cpu) -> bool {
+        return cpu.p.intersects(Status::M);
+    }
+
+    pub fn is_set_n(cpu: &Cpu) -> bool {
+        return cpu.p.intersects(Status::N);
+    }
+
+    pub fn is_set_v(cpu: &Cpu) -> bool {
+        return cpu.p.intersects(Status::V);
+    }
+
+    pub fn is_set_x(cpu: &Cpu) -> bool {
+        return cpu.p.intersects(Status::XB);
+    }
+
+    pub fn is_set_z(cpu: &Cpu) -> bool {
+        return cpu.p.intersects(Status::Z);
+    }
+
+    pub fn set_c(cpu: &mut Cpu, on: bool) {
+        if on {
+            cpu.p |= Status::C;
+        } else {
+            cpu.p &= !Status::C;
+        }
+    }
+
+    pub fn set_z(cpu: &mut Cpu, on: bool) {
+        if on {
+            cpu.p |= Status::Z;
+        } else {
+            cpu.p &= !Status::Z;
+        }
+    }
+
+    pub fn set_i(cpu: &mut Cpu, on: bool) {
+        if on {
+            cpu.p |= Status::I;
+        } else {
+            cpu.p &= !Status::I;
+        }
+    }
+
+    pub fn set_d(cpu: &mut Cpu, on: bool) {
+        if on {
+            cpu.p |= Status::D;
+        } else {
+            cpu.p &= !Status::D;
+        }
+    }
+
+    pub fn set_x(cpu: &mut Cpu, on: bool) {
+        if on {
+            cpu.p |= Status::XB;
+        } else {
+            cpu.p &= !Status::XB;
+        }
+    }
+
+    pub fn set_m(cpu: &mut Cpu, on: bool) {
+        if on {
+            cpu.p |= Status::M;
+        } else {
+            cpu.p &= !Status::M;
+        }
+    }
+
+    pub fn set_v(cpu: &mut Cpu, on: bool) {
+        if on {
+            cpu.p |= Status::V;
+        } else {
+            cpu.p &= !Status::V;
+        }
+    }
+
+    pub fn set_n(cpu: &mut Cpu, on: bool) {
+        if on {
+            cpu.p |= Status::N;
+        } else {
+            cpu.p &= !Status::N;
+        }
+    }
+
+    pub fn clear_status_bits(cpu: &mut Cpu, arg: u8) {
+        let bits = Status::from(!arg);
+        cpu.p &= bits;
+    }
+
+    pub fn set_status_bits(cpu: &mut Cpu, arg: u8) {
+        let bits = Status::from(arg);
+        cpu.p |= bits;
+    }
 }
 
-/// Fetches next byte
-///
-/// * Fetches next byte from memory at [`State::pc`]
-/// * Counts cycles
-/// * Increments [`State::pc`]
-///
-/// # Params
-/// * `state` - Current system state
-///
-/// # Returns
-/// Next byte from program counter address
-pub fn fetch_byte(state: &mut State) -> u8 {
-    let result = memory::get_byte(&state, &state.pc);
-    let cycle_count = 1;
-    add_cycles(state, cycle_count);
-    increment_pc(state, memory::ONE_BYTE);
-    return result;
+/// Setters/getters for 16 bit registers
+pub mod registers_16 {
+    use super::*;
+
+    pub fn set_a(cpu: &mut Cpu, value: u16) {
+        cpu.a = value.to_le_bytes();
+    }
+
+    pub fn set_x(cpu: &mut Cpu, value: u16) {
+        cpu.x = value.to_le_bytes();
+    }
+
+    pub fn set_y(cpu: &mut Cpu, value: u16) {
+        cpu.y = value.to_le_bytes();
+    }
+
+    pub fn set_d(cpu: &mut Cpu, value: u16) {
+        cpu.d = value;
+    }
+
+    pub fn get_a(cpu: &Cpu) -> u16 {
+        return u16::from_le_bytes(cpu.a);
+    }
+
+    pub fn get_x(cpu: &Cpu) -> u16 {
+        return u16::from_le_bytes(cpu.x);
+    }
+
+    pub fn get_y(cpu: &Cpu) -> u16 {
+        return u16::from_le_bytes(cpu.y);
+    }
+
+    pub fn get_d(cpu: &Cpu) -> u16 {
+        return cpu.d;
+    }
 }
 
-/// Memory write
-///
-/// * Writes two byte `value` to memory at `address`
-/// * Counts cycles
-///
-/// # Todo
-/// * Adjust cycles based of type of memory access
-///
-/// # Params
-/// * `state` - Current system state
-/// * `address` - Destination address
-/// * `value` - Two byte value to be written
-pub fn write_word(state: &mut State, address: &SnesAddress, value: u16) {
-    memory::put_word(state, address, value);
-    let cycle_count = 2;
-    add_cycles(state, cycle_count);
+/// Setters/getters for 8 bit registers
+pub mod registers_8 {
+    use super::*;
+
+    pub fn set_a(cpu: &mut Cpu, value: u8) {
+        cpu.a[0] = value;
+    }
+
+    pub fn set_x(cpu: &mut Cpu, value: u8) {
+        cpu.x[0] = value;
+    }
+
+    pub fn set_y(cpu: &mut Cpu, value: u8) {
+        cpu.y[0] = value;
+    }
+
+    pub fn set_dbr(cpu: &mut Cpu, value: u8) {
+        cpu.dbr = value;
+    }
+
+    pub fn set_pbr(cpu: &mut Cpu, value: u8) {
+        cpu.pbr = value;
+    }
+
+    pub fn get_a(cpu: &Cpu) -> u8 {
+        return cpu.a[0];
+    }
+
+    pub fn get_x(cpu: &Cpu) -> u8 {
+        return cpu.x[0];
+    }
+
+    pub fn get_y(cpu: &Cpu) -> u8 {
+        return cpu.y[0];
+    }
+
+    pub fn get_dbr(cpu: &Cpu) -> u8 {
+        return cpu.dbr;
+    }
+
+    pub fn get_pbr(cpu: &Cpu) -> u8 {
+        return cpu.pbr;
+    }
 }
 
-/// Memory write
-///
-/// * Writes one byte `value` to memory at `address`
-/// * Counts cycles
-///
-/// # Todo
-/// * Adjust cycles based of type of memory access
-///
-/// # Params
-/// * `state` - Current system state
-/// * `address` - Destination address
-/// * `value` - One byte value to be written
-pub fn write_byte(state: &mut State, address: &SnesAddress, value: u8) {
-    memory::put_byte(state, address, value);
-    let cycle_count = 1;
-    add_cycles(state, cycle_count);
-}
+/// 16 bit operations
+pub mod ops_16 {
+    use super::*;
+    use registers_16 as reg;
 
-/// Push to stack
-///
-/// * Stack pointer = [`State::s`]
-/// * Write `value` to memory at stack pointer
-/// * Decrement stack pointer
-/// * Counts cycles
-///
-/// # Params
-/// * `state` - Current system state
-/// * `value` - Two byte value to be written
-pub fn push_word(state: &mut State, value: u16) {
-    decrement_stack(state, memory::BYTES_IN_WORD);
-    let pc = state.pc.clone();
-    memory::put_word(state, &pc, value);
-    let cycle_count = 2;
-    add_cycles(state, cycle_count);
-}
+    pub fn set_zn(cpu: &mut Cpu, value: u16) {
+        let is_zero = value == 0;
+        let is_negative = (value as i16) < 0;
+        status_flags::set_z(cpu, is_zero);
+        status_flags::set_n(cpu, is_negative);
+    }
 
-/// Push to stack
-///
-/// * Stack pointer = [`State::s`]
-/// * Decrement stack pointer
-/// * Write `value` to memory at stack pointer
-/// * Counts cycles
-///
-/// # Params
-/// * `state` - Current system state
-/// * `value` - One byte value to be written
-pub fn push_byte(state: &mut State, value: u8) {
-    decrement_stack(state, ONE_BYTE);
-    let pc = state.pc.clone();
-    memory::put_byte(state, &pc, value);
-    let cycle_count = 1;
-    add_cycles(state, cycle_count);
-}
+    pub fn lda(cpu: &mut Cpu, value: u16) {
+        cpu.a = value.to_le_bytes();
+        set_zn(cpu, value);
+    }
 
-/// Pop from stack
-///
-/// * Stack pointer = [`State::s`]
-/// * Read two bytes from memory at stack pointer
-/// * Increment stack pointer
-/// * Counts cycles
-///
-/// # Params
-/// * `state` - Current system state
-///
-/// # Returns
-/// Two byte value from top of stack
-pub fn pop_word(state: &mut State) -> u16 {
-    let result = memory::get_word(&state, &state.s);
-    increment_stack(state, memory::BYTES_IN_WORD);
-    let cycle_count = 2;
-    add_cycles(state, cycle_count);
-    return result;
-}
+    pub fn ldx(cpu: &mut Cpu, value: u16) {
+        cpu.x = value.to_le_bytes();
+        set_zn(cpu, value);
+    }
 
-/// Pop from stack
-///
-/// * Stack pointer = [`State::s`]
-/// * Read one byte from memory at stack pointer
-/// * Increment stack pointer
-/// * Counts cycles
-///
-/// # Params
-/// * `state` - Current system state
-///
-/// # Returns
-/// One byte value from top of stack
-pub fn pop_byte(state: &mut State) -> u8 {
-    let result = memory::get_byte(&state, &state.pc);
-    increment_pc(state, memory::ONE_BYTE);
-    let cycle_count = 1;
-    add_cycles(state, cycle_count);
-    return result;
-}
+    pub fn ldy(cpu: &mut Cpu, value: u16) {
+        cpu.y = value.to_le_bytes();
+        set_zn(cpu, value);
+    }
 
-/// Program execution
-///
-/// Decodes and executes instruction
-///
-/// # Params
-/// * `state` - Current system state
-/// * `op_code` - One byte op code to be executed
-pub fn execute(state: &mut State, op_code: u8) {
-    match op_code {
-        0x61 => adc_61(state),
-        0x63 => adc_63(state),
-        0x65 => adc_65(state),
-        0x67 => adc_67(state),
-        0x69 => adc_69(state),
-        0x6D => adc_6d(state),
-        0x6F => adc_6f(state),
-        0x71 => adc_71(state),
-        0x72 => adc_72(state),
-        0x73 => adc_73(state),
-        0x75 => adc_75(state),
-        0x77 => adc_77(state),
-        0x79 => adc_79(state),
-        0x7D => adc_7d(state),
-        0x7F => adc_7f(state),
-        0x21 => and_21(state),
-        0x23 => and_23(state),
-        0x25 => and_25(state),
-        0x27 => and_27(state),
-        0x29 => and_29(state),
-        0x2D => and_2d(state),
-        0x2F => and_2f(state),
-        0x31 => and_31(state),
-        0x32 => and_32(state),
-        0x33 => and_33(state),
-        0x35 => and_35(state),
-        0x37 => and_37(state),
-        0x39 => and_39(state),
-        0x3D => and_3d(state),
-        0x3F => and_3f(state),
-        0x06 => asl_06(state),
-        0x0A => asl_0a(state),
-        0x0E => asl_0e(state),
-        0x16 => asl_16(state),
-        0x1E => asl_1e(state),
-        0x90 => bcc_90(state),
-        0xB0 => bcs_b0(state),
-        0xF0 => beq_f0(state),
-        0x24 => bit_24(state),
-        0x2C => bit_2c(state),
-        0x34 => bit_34(state),
-        0x3C => bit_3c(state),
-        0x89 => bit_89(state),
-        0x30 => bmi_30(state),
-        0xD0 => bne_d0(state),
-        0x10 => bpl_10(state),
-        0x80 => bra_80(state),
-        0x00 => brk_00(state),
-        0x82 => brl_82(state),
-        0x50 => bvc_50(state),
-        0x70 => bvs_70(state),
-        0x18 => clc_18(state),
-        0xD8 => cld_d8(state),
-        0x58 => cli_58(state),
-        0xB8 => clv_b8(state),
-        0xC1 => cmp_c1(state),
-        0xC3 => cmp_c3(state),
-        0xC5 => cmp_c5(state),
-        0xC7 => cmp_c7(state),
-        0xC9 => cmp_c9(state),
-        0xCD => cmp_cd(state),
-        0xCF => cmp_cf(state),
-        0xD1 => cmp_d1(state),
-        0xD2 => cmp_d2(state),
-        0xD3 => cmp_d3(state),
-        0xD5 => cmp_d5(state),
-        0xD7 => cmp_d7(state),
-        0xD9 => cmp_d9(state),
-        0xDD => cmp_dd(state),
-        0xDF => cmp_df(state),
-        0x02 => cop_02(state),
-        0xE0 => cpx_e0(state),
-        0xE4 => cpx_e4(state),
-        0xEC => cpx_ec(state),
-        0xC0 => cpy_c0(state),
-        0xC4 => cpy_c4(state),
-        0xCC => cpy_cc(state),
-        0x3A => dec_3a(state),
-        0xC6 => dec_c6(state),
-        0xCE => dec_ce(state),
-        0xD6 => dec_d6(state),
-        0xDE => dec_de(state),
-        0xCA => dex_ca(state),
-        0x88 => dey_88(state),
-        0x41 => eor_41(state),
-        0x43 => eor_43(state),
-        0x45 => eor_45(state),
-        0x47 => eor_47(state),
-        0x49 => eor_49(state),
-        0x4D => eor_4d(state),
-        0x4F => eor_4f(state),
-        0x51 => eor_51(state),
-        0x52 => eor_52(state),
-        0x53 => eor_53(state),
-        0x55 => eor_55(state),
-        0x57 => eor_57(state),
-        0x59 => eor_59(state),
-        0x5D => eor_5d(state),
-        0x5F => eor_5f(state),
-        0x1A => inc_1a(state),
-        0xE6 => inc_e6(state),
-        0xEE => inc_ee(state),
-        0xF6 => inc_f6(state),
-        0xFE => inc_fe(state),
-        0xE8 => inx_e8(state),
-        0xC8 => iny_c8(state),
-        0x4C => jmp_4c(state),
-        0x5C => jmp_5c(state),
-        0x6C => jmp_6c(state),
-        0x7C => jmp_7c(state),
-        0xDC => jmp_dc(state),
-        0x20 => jsr_20(state),
-        0x22 => jsr_22(state),
-        0xFC => jsr_fc(state),
-        0xA1 => lda_a1(state),
-        0xA3 => lda_a3(state),
-        0xA5 => lda_a5(state),
-        0xA7 => lda_a7(state),
-        0xA9 => lda_a9(state),
-        0xAD => lda_ad(state),
-        0xAF => lda_af(state),
-        0xB1 => lda_b1(state),
-        0xB2 => lda_b2(state),
-        0xB3 => lda_b3(state),
-        0xB5 => lda_b5(state),
-        0xB7 => lda_b7(state),
-        0xB9 => lda_b9(state),
-        0xBD => lda_bd(state),
-        0xBF => lda_bf(state),
-        0xA2 => ldx_a2(state),
-        0xA6 => ldx_a6(state),
-        0xAE => ldx_ae(state),
-        0xB6 => ldx_b6(state),
-        0xBE => ldx_be(state),
-        0xA0 => ldy_a0(state),
-        0xA4 => ldy_a4(state),
-        0xAC => ldy_ac(state),
-        0xB4 => ldy_b4(state),
-        0xBC => ldy_bc(state),
-        0x46 => lsr_46(state),
-        0x4A => lsr_4a(state),
-        0x4E => lsr_4e(state),
-        0x56 => lsr_56(state),
-        0x5E => lsr_5e(state),
-        0x54 => mvn_54(state),
-        0x44 => mvp_44(state),
-        0xEA => nop_ea(state),
-        0x01 => ora_01(state),
-        0x03 => ora_03(state),
-        0x05 => ora_05(state),
-        0x07 => ora_07(state),
-        0x09 => ora_09(state),
-        0x0D => ora_0d(state),
-        0x0F => ora_0f(state),
-        0x11 => ora_11(state),
-        0x12 => ora_12(state),
-        0x13 => ora_13(state),
-        0x15 => ora_15(state),
-        0x17 => ora_17(state),
-        0x19 => ora_19(state),
-        0x1D => ora_1d(state),
-        0x1F => ora_1f(state),
-        0xF4 => pea_f4(state),
-        0xD4 => pei_d4(state),
-        0x62 => per_62(state),
-        0x48 => pha_48(state),
-        0x8B => phb_8b(state),
-        0x0B => phd_0b(state),
-        0x4B => phk_4b(state),
-        0x08 => php_08(state),
-        0xDA => phx_da(state),
-        0x5A => phy_5a(state),
-        0x68 => pla_68(state),
-        0xAB => plb_ab(state),
-        0x2B => pld_2b(state),
-        0x28 => plp_28(state),
-        0xFA => plx_fa(state),
-        0x7A => ply_7a(state),
-        0xC2 => rep_c2(state),
-        0x26 => rol_26(state),
-        0x2A => rol_2a(state),
-        0x2E => rol_2e(state),
-        0x36 => rol_36(state),
-        0x3E => rol_3e(state),
-        0x66 => ror_66(state),
-        0x6A => ror_6a(state),
-        0x6E => ror_6e(state),
-        0x76 => ror_76(state),
-        0x7E => ror_7e(state),
-        0x40 => rti_40(state),
-        0x6B => rtl_6b(state),
-        0x60 => rts_60(state),
-        0xE1 => sbc_e1(state),
-        0xE3 => sbc_e3(state),
-        0xE5 => sbc_e5(state),
-        0xE7 => sbc_e7(state),
-        0xE9 => sbc_e9(state),
-        0xED => sbc_ed(state),
-        0xEF => sbc_ef(state),
-        0xF1 => sbc_f1(state),
-        0xF2 => sbc_f2(state),
-        0xF3 => sbc_f3(state),
-        0xF5 => sbc_f5(state),
-        0xF7 => sbc_f7(state),
-        0xF9 => sbc_f9(state),
-        0xFD => sbc_fd(state),
-        0xFF => sbc_ff(state),
-        0x38 => sec_38(state),
-        0xF8 => sed_f8(state),
-        0x78 => sei_78(state),
-        0xE2 => sep_e2(state),
-        0x81 => sta_81(state),
-        0x83 => sta_83(state),
-        0x85 => sta_85(state),
-        0x87 => sta_87(state),
-        0x8D => sta_8d(state),
-        0x8F => sta_8f(state),
-        0x91 => sta_91(state),
-        0x92 => sta_92(state),
-        0x93 => sta_93(state),
-        0x95 => sta_95(state),
-        0x97 => sta_97(state),
-        0x99 => sta_99(state),
-        0x9D => sta_9d(state),
-        0x9F => sta_9f(state),
-        0xDB => stp_db(state),
-        0x86 => stx_86(state),
-        0x8E => stx_8e(state),
-        0x96 => stx_96(state),
-        0x84 => sty_84(state),
-        0x8C => sty_8c(state),
-        0x94 => sty_94(state),
-        0x64 => stz_64(state),
-        0x74 => stz_74(state),
-        0x9C => stz_9c(state),
-        0x9E => stz_9e(state),
-        0xAA => tax_aa(state),
-        0xA8 => tay_a8(state),
-        0x5B => tcd_5b(state),
-        0x1B => tcs_1b(state),
-        0x7B => tdc_7b(state),
-        0x14 => trb_14(state),
-        0x1C => trb_1c(state),
-        0x04 => tsb_04(state),
-        0x0C => tsb_0c(state),
-        0x3B => tsc_3b(state),
-        0xBA => tsx_ba(state),
-        0x8A => txa_8a(state),
-        0x9A => txs_9a(state),
-        0x9B => txy_9b(state),
-        0x98 => tya_98(state),
-        0xBB => tyx_bb(state),
-        0xCB => wai_cb(state),
-        0x42 => wdm_42(state),
-        0xEB => xba_eb(state),
-        0xFB => xce_fb(state),
+    pub fn adc(cpu: &mut Cpu, rhs: u16) -> u16 {
+        let lhs = reg::get_a(cpu);
+        let (mut result, mut carry) = lhs.overflowing_add(rhs);
+
+        let is_carry_set = status_flags::is_set_c(cpu);
+        if is_carry_set {
+            let (tmp_result, tmp_carry) = result.overflowing_add(1);
+            result = tmp_result;
+            carry |= tmp_carry;
+        }
+
+        let signed_overflow = ((lhs as i16) < 0 && (rhs as i16) < 0 && (result as i16) > 0)
+            || ((lhs as i16) > 0 && (rhs as i16) > 0 && (result as i16) < 0);
+
+        lda(cpu, result);
+        status_flags::set_v(cpu, signed_overflow);
+        status_flags::set_c(cpu, carry);
+        return result;
+    }
+
+    pub fn sbc(cpu: &mut Cpu, rhs: u16) -> u16 {
+        let lhs = reg::get_a(cpu);
+        let (mut result, mut carry) = lhs.overflowing_sub(rhs);
+
+        let is_carry_set = status_flags::is_set_c(cpu);
+        if is_carry_set {
+            let (tmp_result, tmp_carry) = result.overflowing_sub(1);
+            result = tmp_result;
+            carry |= tmp_carry;
+        }
+
+        let signed_overflow = ((lhs as i16) < 0 && (rhs as i16) > 0 && result > 0)
+            || ((lhs as i16) > 0 && (rhs as i16) < 0 && (result as i16) < 0);
+
+        lda(cpu, result);
+        status_flags::set_v(cpu, signed_overflow);
+        status_flags::set_c(cpu, carry);
+        return result;
+    }
+
+    pub fn and(cpu: &mut Cpu, rhs: u16) -> u16 {
+        let lhs = reg::get_a(cpu);
+        let result = lhs & rhs;
+        lda(cpu, result);
+        return result;
+    }
+
+    pub fn eor(cpu: &mut Cpu, rhs: u16) -> u16 {
+        let lhs = reg::get_a(cpu);
+        let result = lhs ^ rhs;
+        lda(cpu, result);
+        set_zn(cpu, result);
+        return result;
+    }
+
+    pub fn ora(cpu: &mut Cpu, rhs: u16) -> u16 {
+        let lhs = reg::get_a(cpu);
+        let result = lhs | rhs;
+        lda(cpu, result);
+        return result;
+    }
+
+    pub fn tsb(cpu: &mut Cpu, rhs: u16) -> u16 {
+        let lhs = reg::get_a(cpu);
+        let result = lhs | rhs;
+        set_zn(cpu, result);
+        return result;
+    }
+
+    pub fn trb(cpu: &mut Cpu, rhs: u16) -> u16 {
+        let lhs = reg::get_a(cpu);
+        let result = !lhs & rhs;
+        set_zn(cpu, rhs);
+        return result;
+    }
+
+    pub fn asl(cpu: &mut Cpu, value: u16) -> u16 {
+        let carry = (value as i16) < 0;
+
+        // If high bit is set, clear it to avoid avoid overflow and set carry flag.
+        let result: u16 = if carry {
+            let bitmask = 0x7FFF;
+            (value & bitmask) << 1
+        } else {
+            value << 1
+        };
+
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        return result;
+    }
+
+    pub fn lsr(cpu: &mut Cpu, value: u16) -> u16 {
+        let carry = (value & 1) > 0;
+        let result = value >> 1;
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        (cpu, carry);
+        return result;
+    }
+
+    pub fn rol(cpu: &mut Cpu, value: u16) -> u16 {
+        let is_carry_set = status_flags::is_set_c(cpu);
+        let carry = (value as i16) < 0;
+
+        let mut result = if carry {
+            let bitmask = 0x7FFF;
+            (value & bitmask) << 1
+        } else {
+            value << 1
+        };
+
+        if is_carry_set {
+            result += 1;
+        }
+
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        return result;
+    }
+
+    pub fn ror(cpu: &mut Cpu, value: u16) -> u16 {
+        let is_carry_set = status_flags::is_set_c(cpu);
+        let carry = (value & 1) > 0;
+
+        let result: u16 = if is_carry_set {
+            (value >> 1) | 0x8000
+        } else {
+            value >> 1
+        };
+
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        return result;
+    }
+
+    pub fn bit(cpu: &mut Cpu, rhs: u16) -> u16 {
+        let lhs = reg::get_a(cpu);
+        let result = lhs & rhs;
+        let is_set_bit_14 = (result & 1 << 13) > 0;
+        status_flags::set_v(cpu, is_set_bit_14);
+        set_zn(cpu, result);
+        return result;
+    }
+
+    pub fn compare(cpu: &mut Cpu, lhs: u16, rhs: u16) {
+        let result = lhs.wrapping_sub(rhs);
+        let greater_equal = lhs >= rhs;
+        status_flags::set_c(cpu, greater_equal);
+        set_zn(cpu, result);
+    }
+
+    pub fn dec(cpu: &mut Cpu, value: u16) -> u16 {
+        let result = value.wrapping_sub(1);
+        set_zn(cpu, result);
+        return result;
+    }
+
+    pub fn inc(cpu: &mut Cpu, value: u16) -> u16 {
+        let result = value.wrapping_add(1);
+        set_zn(cpu, value);
+        return result;
+    }
+}
+/// 8 bit operations
+pub mod ops_8 {
+    use super::*;
+    use registers_8 as reg;
+
+    pub fn set_zn(cpu: &mut Cpu, value: u8) {
+        let is_zero = value == 0;
+        let is_negative = (value as i8) < 0;
+        status_flags::set_z(cpu, is_zero);
+        status_flags::set_n(cpu, is_negative);
+    }
+
+    pub fn lda(cpu: &mut Cpu, value: u8) {
+        cpu.a[0] = value;
+    }
+
+    pub fn ldx(cpu: &mut Cpu, value: u8) {
+        cpu.x[0] = value;
+    }
+
+    pub fn ldy(cpu: &mut Cpu, value: u8) {
+        cpu.y[0] = value;
+    }
+
+    pub fn adc(cpu: &mut Cpu, rhs: u8) -> u8 {
+        let lhs = reg::get_a(cpu);
+        let (mut result, mut carry) = lhs.overflowing_add(rhs);
+
+        let is_carry_set = status_flags::is_set_c(cpu);
+        if is_carry_set {
+            let (tmp_result, tmp_carry) = result.overflowing_add(1);
+            result = tmp_result;
+            carry |= tmp_carry;
+        }
+
+        let signed_overflow = ((lhs as i8) < 0 && (rhs as i8) < 0 && (result as i8) > 0)
+            || ((lhs as i8) > 0 && (rhs as i8) > 0 && (result as i8) < 0);
+
+        lda(cpu, result);
+        status_flags::set_v(cpu, signed_overflow);
+        status_flags::set_c(cpu, carry);
+        return result;
+    }
+
+    pub fn sbc(cpu: &mut Cpu, rhs: u8) -> u8 {
+        let lhs = reg::get_a(cpu);
+        let (mut result, mut carry) = lhs.overflowing_sub(rhs);
+
+        let is_carry_set = status_flags::is_set_c(cpu);
+        if is_carry_set {
+            let (tmp_result, tmp_carry) = result.overflowing_sub(1);
+            result = tmp_result;
+            carry |= tmp_carry;
+        }
+
+        let signed_overflow = ((lhs as i8) < 0 && (rhs as i8) > 0 && result > 0)
+            || ((lhs as i8) > 0 && (rhs as i8) < 0 && (result as i8) < 0);
+
+        lda(cpu, result);
+        status_flags::set_v(cpu, signed_overflow);
+        status_flags::set_c(cpu, carry);
+        return result;
+    }
+
+    pub fn and(cpu: &mut Cpu, rhs: u8) -> u8 {
+        let lhs = reg::get_a(cpu);
+        let result = lhs & rhs;
+        lda(cpu, result);
+        return result;
+    }
+
+    pub fn eor(cpu: &mut Cpu, rhs: u8) -> u8 {
+        let lhs = reg::get_a(cpu);
+        let result = lhs ^ rhs;
+        lda(cpu, result);
+        return result;
+    }
+
+    pub fn ora(cpu: &mut Cpu, rhs: u8) -> u8 {
+        let lhs = reg::get_a(cpu);
+        let result = lhs | rhs;
+        lda(cpu, result);
+        return result;
+    }
+
+    pub fn tsb(cpu: &mut Cpu, rhs: u8) -> u8 {
+        let lhs = reg::get_a(cpu);
+        let result = lhs | rhs;
+        set_zn(cpu, result);
+        return result;
+    }
+
+    pub fn trb(cpu: &mut Cpu, rhs: u8) -> u8 {
+        let lhs = reg::get_a(cpu);
+        let result = !lhs & rhs;
+        set_zn(cpu, rhs);
+        return result;
+    }
+
+    pub fn asl(cpu: &mut Cpu, value: u8) -> u8 {
+        let carry = (value as i8) < 0;
+
+        // If high bit is set, clear it to avoid avoid overflow and set carry flag.
+        let result: u8 = if carry {
+            let bitmask = 0x7F;
+            (value & bitmask) << 1
+        } else {
+            value << 1
+        };
+
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        (cpu, carry);
+        return result;
+    }
+
+    pub fn lsr(cpu: &mut Cpu, value: u8) -> u8 {
+        let carry = (value & 1) > 0;
+        let result = value >> 1;
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        (cpu, carry);
+        return result;
+    }
+
+    pub fn rol(cpu: &mut Cpu, value: u8) -> u8 {
+        let is_carry_set = status_flags::is_set_c(cpu);
+        let carry = (value as i8) < 0;
+
+        let mut result = if carry {
+            let bitmask = 0x7F;
+            (value & bitmask) << 1
+        } else {
+            value << 1
+        };
+
+        if is_carry_set {
+            result += 1;
+        }
+
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        return result;
+    }
+
+    pub fn ror(cpu: &mut Cpu, value: u8) -> u8 {
+        let is_carry_set = status_flags::is_set_c(cpu);
+        let carry = (value & 1) > 0;
+
+        let result: u8 = if is_carry_set {
+            (value >> 1) | 0x80
+        } else {
+            value >> 1
+        };
+
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        return result;
+    }
+
+    pub fn bit(cpu: &mut Cpu, rhs: u8) -> u8 {
+        let lhs = reg::get_a(cpu);
+        let result = lhs & rhs;
+        let is_set_bit_6 = (result & (1 << 5)) > 0;
+        status_flags::set_v(cpu, is_set_bit_6);
+        set_zn(cpu, result);
+        return result;
+    }
+
+    pub fn compare(cpu: &mut Cpu, lhs: u8, rhs: u8) {
+        let result = lhs.wrapping_sub(rhs);
+        let greater_equal = lhs >= rhs;
+        status_flags::set_c(cpu, greater_equal);
+        set_zn(cpu, result);
+    }
+
+    pub fn dec(cpu: &mut Cpu, value: u8) -> u8 {
+        let result = value.wrapping_sub(1);
+        set_zn(cpu, result);
+        return result;
+    }
+
+    pub fn inc(cpu: &mut Cpu, value: u8) -> u8 {
+        let result = value.wrapping_add(1);
+        set_zn(cpu, value);
+        return result;
     }
 }

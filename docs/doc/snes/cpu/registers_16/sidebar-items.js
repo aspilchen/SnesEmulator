@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["get_a","get_d","get_x","get_y","set_a","set_d","set_x","set_y"]};

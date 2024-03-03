@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["BLOCK_SIZE","FIRST_BANK","LAST_BANK","REFLECT_BANK"],"fn":["in_bounds"]};
