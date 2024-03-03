@@ -507,512 +507,962 @@
 <a href="#506" id="506">506</a>
 <a href="#507" id="507">507</a>
 <a href="#508" id="508">508</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! CPU functions such as fetch, read and execute are found here.
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! CPU State
 
-</span><span class="kw">use </span><span class="kw">crate</span>::instructions::<span class="kw-2">*</span>;
-<span class="kw">use </span><span class="kw">crate</span>::memory::{<span class="self">self</span>, ONE_BYTE};
-<span class="kw">use </span><span class="kw">crate</span>::snes_address::SnesAddress;
-<span class="kw">use </span><span class="kw">crate</span>::state::State;
+</span><span class="kw">use </span>core::fmt;
 
-<span class="doccomment">/// Program counter
-///
-/// Increments [`State::pc`] by `amount`
-///
-/// # Todo
-/// * Handle incrementing the PBR
-</span><span class="kw">pub fn </span>increment_pc(state: <span class="kw-2">&amp;mut </span>State, amount: u16) {
-    <span class="kw">let </span><span class="kw-2">mut </span>address = state.pc.get_address();
-    address += amount;
-    state.pc.set_address(address);
-}
+<span class="kw">use </span>bitmask_enum::bitmask;
 
-<span class="doccomment">/// Stack pointer
+<span class="kw">use </span><span class="kw">crate</span>::memory::{<span class="self">self</span>, Memory};
+
+<span class="doccomment">/// Status flags for the CPU
 ///
-/// * Increment [`State::s`] by `amount`
-///
-/// # Todo
-/// *  Handle incrementing the stack bank
-</span><span class="kw">pub fn </span>increment_stack(state: <span class="kw-2">&amp;mut </span>State, amount: u16) {
-    <span class="kw">let </span>address = state.s.get_address() + amount;
-    state.s.set_address(address);
-    <span class="comment">// todo!("Handle stack bank");
+/// Flag names are taken from SNES hardware manuals.
+/// The emulation flag is hidden, will be handled later.
+</span><span class="attr">#[bitmask(u8)]
+</span><span class="kw">pub enum </span>Status {
+    <span class="doccomment">/// Carry
+    </span>C = <span class="number">0b00000001</span>,
+
+    <span class="doccomment">/// Zero
+    </span>Z = <span class="number">0b00000010</span>,
+
+    <span class="doccomment">/// IRQ
+    </span>I = <span class="number">0b00000100</span>,
+
+    <span class="doccomment">/// Decimal mode
+    </span>D = <span class="number">0b00001000</span>,
+
+    <span class="doccomment">/// In native mode
+    /// - Index register size
+    /// In emulation mode
+    /// - Break
+    </span>XB = <span class="number">0b00010000</span>,
+
+    <span class="doccomment">/// Memory mode
+    </span>M = <span class="number">0b00100000</span>,
+
+    <span class="doccomment">/// Overflow
+    </span>V = <span class="number">0b01000000</span>,
+
+    <span class="doccomment">/// Negative
+    </span>N = <span class="number">0b10000000</span>,
+    <span class="comment">// 6502 emulation mode
+    // E
 </span>}
 
-<span class="doccomment">/// Stack pointer
-///
-/// * Decrement [`State::s`] by `amount`
-///
-/// # Todo
-///  Handle incrementing the stack bank.
-</span><span class="kw">pub fn </span>decrement_stack(state: <span class="kw-2">&amp;mut </span>State, amount: u16) {
-    <span class="kw">let </span>address = state.s.get_address() - amount;
-    state.s.set_address(address);
+<span class="doccomment">/// Cpu State
+</span><span class="kw">pub struct </span>Cpu {
+    <span class="doccomment">/// Accumulator
+    </span><span class="kw">pub </span>a: [u8; <span class="number">2</span>],
+
+    <span class="doccomment">/// Index
+    </span><span class="kw">pub </span>x: [u8; <span class="number">2</span>],
+
+    <span class="doccomment">/// Index
+    </span><span class="kw">pub </span>y: [u8; <span class="number">2</span>],
+
+    <span class="doccomment">/// Stack Pointer
+    </span><span class="kw">pub </span>s: u16,
+
+    <span class="doccomment">/// Data Bank
+    </span><span class="kw">pub </span>dbr: u8,
+
+    <span class="doccomment">/// Direct Page Register
+    </span><span class="kw">pub </span>d: u16,
+
+    <span class="doccomment">/// Program Bank
+    </span><span class="kw">pub </span>pbr: u8,
+
+    <span class="doccomment">/// Status Register
+    ///
+    /// Status bits used for comparison operations and to
+    /// control CPU behaviour.
+    </span><span class="kw">pub </span>p: Status,
+
+    <span class="doccomment">/// Program Counter
+    </span><span class="kw">pub </span>pc: u16,
+
+    <span class="doccomment">/// Emulation Flag
+    ///
+    /// Hidden flag to control emulation mode.
+    /// When in emulation mode, system behaves like the NES.
+    ///
+    /// # Note
+    /// As far as I can tell the SNES was meant to be backwards compatible
+    /// with NES games, but this feature was never used. For now I will just
+    /// be working with the native mode, and will not spend much time handling
+    /// emulation features.
+    </span><span class="kw">pub </span>e: bool,
+
+    <span class="doccomment">/// Cycle Count
+    </span><span class="kw">pub </span>cycles: i32,
 }
 
-<span class="doccomment">/// CPU cycles
-///
-/// * Increment [`State::cycles`] by n_cycles
-</span><span class="kw">pub fn </span>add_cycles(state: <span class="kw-2">&amp;mut </span>State, n_cycles: u32) {
-    state.cycles += n_cycles;
+<span class="kw">impl </span>Default <span class="kw">for </span>Cpu {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            a: [<span class="number">0</span>, <span class="number">0</span>],
+            x: [<span class="number">0</span>, <span class="number">0</span>],
+            y: [<span class="number">0</span>, <span class="number">0</span>],
+            s: <span class="number">0x0100</span>,
+            dbr: <span class="number">0</span>,
+            d: <span class="number">0</span>,
+            pbr: <span class="number">0</span>,
+            p: Status::none(),
+            pc: <span class="number">0</span>,
+            e: <span class="bool-val">false</span>,
+            cycles: <span class="number">0</span>,
+        }
+    }
 }
 
-<span class="doccomment">/// Memory read
-///
-/// * Read two bytes from memory at address
-/// * Counts cycles
-/// * Does *not* increment program counter
-///
-/// # Todo
-/// * Adjust cycle count depending on type of memory acccess
-///
-/// # Params
-/// * `state` - Current system state
-/// * `address` - Source address to read from
-///
-/// # Returns
-/// Two bytes from memory at address location
-</span><span class="kw">pub fn </span>read_word(state: <span class="kw-2">&amp;mut </span>State, address: <span class="kw-2">&amp;</span>SnesAddress) -&gt; u16 {
-    <span class="kw">let </span>result = memory::get_word(state, address);
-    add_cycles(state, <span class="number">2</span>);
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Cpu {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"------------------------\n"</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(
+            f,
+            <span class="string">"| A [0x{:02X}, 0x{:02X}] {:&lt;6}|\n"</span>,
+            <span class="self">self</span>.a[<span class="number">0</span>],
+            <span class="self">self</span>.a[<span class="number">1</span>],
+            registers_16::get_a(<span class="self">self</span>)
+        )<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(
+            f,
+            <span class="string">"| X [0x{:02X}, 0x{:02X}] {:&lt;6}|\n"</span>,
+            <span class="self">self</span>.x[<span class="number">0</span>],
+            <span class="self">self</span>.x[<span class="number">1</span>],
+            registers_16::get_x(<span class="self">self</span>)
+        )<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(
+            f,
+            <span class="string">"| Y [0x{:02X}, 0x{:02X}] {:&lt;6}|\n"</span>,
+            <span class="self">self</span>.y[<span class="number">0</span>],
+            <span class="self">self</span>.y[<span class="number">1</span>],
+            registers_16::get_y(<span class="self">self</span>)
+        )<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"------------------------\n"</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"| {:&lt;5}{:&lt;5}{:&lt;5}{:&lt;6}|\n"</span>, <span class="string">'S'</span>, <span class="string">'D'</span>, <span class="string">"DBR"</span>, <span class="string">"Cycle"</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(
+            f,
+            <span class="string">"| {:&lt;5}{:&lt;5}{:&lt;5}{:&lt;6}|\n"</span>,
+            <span class="self">self</span>.s, <span class="self">self</span>.d, <span class="self">self</span>.dbr, <span class="self">self</span>.cycles
+        )<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"------------------------\n"</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"|{:&gt;10}:{:&lt;11}|\n"</span>, <span class="string">"PBR"</span>, <span class="string">"PC"</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"| hex    {:&gt;02x}:{:&lt;04x}       |\n"</span>, <span class="self">self</span>.pbr, <span class="self">self</span>.pc)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"------------------------\n"</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"|{:&gt;11}{:&lt;11}|\n"</span>, <span class="string">"P"</span>, <span class="string">""</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"|       {:08b}       |\n"</span>, <span class="self">self</span>.p)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"------------------------\n"</span>)
+    }
+}
+
+<span class="kw">pub fn </span>add_cycles(cpu: <span class="kw-2">&amp;mut </span>Cpu, amount: i32) {
+    cpu.cycles += amount;
+}
+
+<span class="kw">pub fn </span>get_pc_address(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; usize {
+    <span class="kw">let </span>bank = cpu.pbr <span class="kw">as </span>usize;
+    <span class="kw">let </span>offset = cpu.pc <span class="kw">as </span>usize;
+    <span class="kw">let </span>result = (bank &lt;&lt; <span class="number">16</span>) + offset;
     <span class="kw">return </span>result;
 }
 
-<span class="doccomment">/// Memory read
-///
-/// * Read one byte from memory at address
-/// * Counts cycles
-/// * Does *not* increment program counter
-///
-/// # Todo
-/// * Adjust cycle count depending on type of memory access
-///
-/// # Params
-/// * `state` - Current system state
-/// * `address` - Source address to read from
-///
-/// # Returns
-/// One byte from memory at address location
-</span><span class="kw">pub fn </span>read_byte(state: <span class="kw-2">&amp;mut </span>State, address: <span class="kw-2">&amp;</span>SnesAddress) -&gt; u8 {
-    <span class="kw">let </span>result = memory::get_byte(<span class="kw-2">&amp;</span>state, address);
-    add_cycles(state, <span class="number">1</span>);
-    <span class="kw">return </span>result;
+<span class="kw">pub fn </span>set_pc_address(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: usize) {
+    <span class="kw">let </span>bank = (value &gt;&gt; <span class="number">16</span>) <span class="kw">as </span>u8;
+    <span class="kw">let </span>offset = value <span class="kw">as </span>u16;
+    cpu.pbr = bank;
+    cpu.pc = offset;
 }
 
-<span class="doccomment">/// Memory read
-///
-/// * Fetches next word from memory at [`State::pc`]
-/// * Counts cycles
-/// * Increments [`State::pc`]
-///
-/// # Params
-/// * `state` - Current system state
-///
-/// # Returns
-/// Next two byte from program counter address
-</span><span class="kw">pub fn </span>fetch_word(state: <span class="kw-2">&amp;mut </span>State) -&gt; u16 {
-    <span class="kw">let </span>result = memory::get_word(<span class="kw-2">&amp;</span>state, <span class="kw-2">&amp;</span>state.pc);
-    <span class="kw">let </span>cycle_count = <span class="number">2</span>;
-    add_cycles(state, cycle_count);
-    increment_pc(state, memory::BYTES_IN_WORD);
-    <span class="kw">return </span>result;
+<span class="doccomment">/// Set/Get status bits
+</span><span class="kw">pub mod </span>status_flags {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+
+    <span class="kw">pub fn </span>is_set_c(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; bool {
+        <span class="kw">return </span>cpu.p.intersects(Status::C);
+    }
+
+    <span class="kw">pub fn </span>is_set_m(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; bool {
+        <span class="kw">return </span>cpu.p.intersects(Status::M);
+    }
+
+    <span class="kw">pub fn </span>is_set_n(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; bool {
+        <span class="kw">return </span>cpu.p.intersects(Status::N);
+    }
+
+    <span class="kw">pub fn </span>is_set_v(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; bool {
+        <span class="kw">return </span>cpu.p.intersects(Status::V);
+    }
+
+    <span class="kw">pub fn </span>is_set_x(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; bool {
+        <span class="kw">return </span>cpu.p.intersects(Status::XB);
+    }
+
+    <span class="kw">pub fn </span>is_set_z(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; bool {
+        <span class="kw">return </span>cpu.p.intersects(Status::Z);
+    }
+
+    <span class="kw">pub fn </span>set_c(cpu: <span class="kw-2">&amp;mut </span>Cpu, on: bool) {
+        <span class="kw">if </span>on {
+            cpu.p |= Status::C;
+        } <span class="kw">else </span>{
+            cpu.p &amp;= !Status::C;
+        }
+    }
+
+    <span class="kw">pub fn </span>set_z(cpu: <span class="kw-2">&amp;mut </span>Cpu, on: bool) {
+        <span class="kw">if </span>on {
+            cpu.p |= Status::Z;
+        } <span class="kw">else </span>{
+            cpu.p &amp;= !Status::Z;
+        }
+    }
+
+    <span class="kw">pub fn </span>set_i(cpu: <span class="kw-2">&amp;mut </span>Cpu, on: bool) {
+        <span class="kw">if </span>on {
+            cpu.p |= Status::I;
+        } <span class="kw">else </span>{
+            cpu.p &amp;= !Status::I;
+        }
+    }
+
+    <span class="kw">pub fn </span>set_d(cpu: <span class="kw-2">&amp;mut </span>Cpu, on: bool) {
+        <span class="kw">if </span>on {
+            cpu.p |= Status::D;
+        } <span class="kw">else </span>{
+            cpu.p &amp;= !Status::D;
+        }
+    }
+
+    <span class="kw">pub fn </span>set_x(cpu: <span class="kw-2">&amp;mut </span>Cpu, on: bool) {
+        <span class="kw">if </span>on {
+            cpu.p |= Status::XB;
+        } <span class="kw">else </span>{
+            cpu.p &amp;= !Status::XB;
+        }
+    }
+
+    <span class="kw">pub fn </span>set_m(cpu: <span class="kw-2">&amp;mut </span>Cpu, on: bool) {
+        <span class="kw">if </span>on {
+            cpu.p |= Status::M;
+        } <span class="kw">else </span>{
+            cpu.p &amp;= !Status::M;
+        }
+    }
+
+    <span class="kw">pub fn </span>set_v(cpu: <span class="kw-2">&amp;mut </span>Cpu, on: bool) {
+        <span class="kw">if </span>on {
+            cpu.p |= Status::V;
+        } <span class="kw">else </span>{
+            cpu.p &amp;= !Status::V;
+        }
+    }
+
+    <span class="kw">pub fn </span>set_n(cpu: <span class="kw-2">&amp;mut </span>Cpu, on: bool) {
+        <span class="kw">if </span>on {
+            cpu.p |= Status::N;
+        } <span class="kw">else </span>{
+            cpu.p &amp;= !Status::N;
+        }
+    }
+
+    <span class="kw">pub fn </span>clear_status_bits(cpu: <span class="kw-2">&amp;mut </span>Cpu, arg: u8) {
+        <span class="kw">let </span>bits = Status::from(!arg);
+        cpu.p &amp;= bits;
+    }
+
+    <span class="kw">pub fn </span>set_status_bits(cpu: <span class="kw-2">&amp;mut </span>Cpu, arg: u8) {
+        <span class="kw">let </span>bits = Status::from(arg);
+        cpu.p |= bits;
+    }
 }
 
-<span class="doccomment">/// Fetches next byte
-///
-/// * Fetches next byte from memory at [`State::pc`]
-/// * Counts cycles
-/// * Increments [`State::pc`]
-///
-/// # Params
-/// * `state` - Current system state
-///
-/// # Returns
-/// Next byte from program counter address
-</span><span class="kw">pub fn </span>fetch_byte(state: <span class="kw-2">&amp;mut </span>State) -&gt; u8 {
-    <span class="kw">let </span>result = memory::get_byte(<span class="kw-2">&amp;</span>state, <span class="kw-2">&amp;</span>state.pc);
-    <span class="kw">let </span>cycle_count = <span class="number">1</span>;
-    add_cycles(state, cycle_count);
-    increment_pc(state, memory::ONE_BYTE);
-    <span class="kw">return </span>result;
+<span class="doccomment">/// Setters/getters for 16 bit registers
+</span><span class="kw">pub mod </span>registers_16 {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+
+    <span class="kw">pub fn </span>set_a(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u16) {
+        cpu.a = value.to_le_bytes();
+    }
+
+    <span class="kw">pub fn </span>set_x(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u16) {
+        cpu.x = value.to_le_bytes();
+    }
+
+    <span class="kw">pub fn </span>set_y(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u16) {
+        cpu.y = value.to_le_bytes();
+    }
+
+    <span class="kw">pub fn </span>set_d(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u16) {
+        cpu.d = value;
+    }
+
+    <span class="kw">pub fn </span>get_a(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; u16 {
+        <span class="kw">return </span>u16::from_le_bytes(cpu.a);
+    }
+
+    <span class="kw">pub fn </span>get_x(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; u16 {
+        <span class="kw">return </span>u16::from_le_bytes(cpu.x);
+    }
+
+    <span class="kw">pub fn </span>get_y(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; u16 {
+        <span class="kw">return </span>u16::from_le_bytes(cpu.y);
+    }
+
+    <span class="kw">pub fn </span>get_d(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; u16 {
+        <span class="kw">return </span>cpu.d;
+    }
 }
 
-<span class="doccomment">/// Memory write
-///
-/// * Writes two byte `value` to memory at `address`
-/// * Counts cycles
-///
-/// # Todo
-/// * Adjust cycles based of type of memory access
-///
-/// # Params
-/// * `state` - Current system state
-/// * `address` - Destination address
-/// * `value` - Two byte value to be written
-</span><span class="kw">pub fn </span>write_word(state: <span class="kw-2">&amp;mut </span>State, address: <span class="kw-2">&amp;</span>SnesAddress, value: u16) {
-    memory::put_word(state, address, value);
-    <span class="kw">let </span>cycle_count = <span class="number">2</span>;
-    add_cycles(state, cycle_count);
+<span class="doccomment">/// Setters/getters for 8 bit registers
+</span><span class="kw">pub mod </span>registers_8 {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+
+    <span class="kw">pub fn </span>set_a(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) {
+        cpu.a[<span class="number">0</span>] = value;
+    }
+
+    <span class="kw">pub fn </span>set_x(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) {
+        cpu.x[<span class="number">0</span>] = value;
+    }
+
+    <span class="kw">pub fn </span>set_y(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) {
+        cpu.y[<span class="number">0</span>] = value;
+    }
+
+    <span class="kw">pub fn </span>set_dbr(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) {
+        cpu.dbr = value;
+    }
+
+    <span class="kw">pub fn </span>set_pbr(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) {
+        cpu.pbr = value;
+    }
+
+    <span class="kw">pub fn </span>get_a(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; u8 {
+        <span class="kw">return </span>cpu.a[<span class="number">0</span>];
+    }
+
+    <span class="kw">pub fn </span>get_x(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; u8 {
+        <span class="kw">return </span>cpu.x[<span class="number">0</span>];
+    }
+
+    <span class="kw">pub fn </span>get_y(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; u8 {
+        <span class="kw">return </span>cpu.y[<span class="number">0</span>];
+    }
+
+    <span class="kw">pub fn </span>get_dbr(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; u8 {
+        <span class="kw">return </span>cpu.dbr;
+    }
+
+    <span class="kw">pub fn </span>get_pbr(cpu: <span class="kw-2">&amp;</span>Cpu) -&gt; u8 {
+        <span class="kw">return </span>cpu.pbr;
+    }
 }
 
-<span class="doccomment">/// Memory write
-///
-/// * Writes one byte `value` to memory at `address`
-/// * Counts cycles
-///
-/// # Todo
-/// * Adjust cycles based of type of memory access
-///
-/// # Params
-/// * `state` - Current system state
-/// * `address` - Destination address
-/// * `value` - One byte value to be written
-</span><span class="kw">pub fn </span>write_byte(state: <span class="kw-2">&amp;mut </span>State, address: <span class="kw-2">&amp;</span>SnesAddress, value: u8) {
-    memory::put_byte(state, address, value);
-    <span class="kw">let </span>cycle_count = <span class="number">1</span>;
-    add_cycles(state, cycle_count);
-}
+<span class="doccomment">/// 16 bit operations
+</span><span class="kw">pub mod </span>ops_16 {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>registers_16 <span class="kw">as </span>reg;
 
-<span class="doccomment">/// Push to stack
-///
-/// * Stack pointer = [`State::s`]
-/// * Write `value` to memory at stack pointer
-/// * Decrement stack pointer
-/// * Counts cycles
-///
-/// # Params
-/// * `state` - Current system state
-/// * `value` - Two byte value to be written
-</span><span class="kw">pub fn </span>push_word(state: <span class="kw-2">&amp;mut </span>State, value: u16) {
-    decrement_stack(state, memory::BYTES_IN_WORD);
-    <span class="kw">let </span>pc = state.pc.clone();
-    memory::put_word(state, <span class="kw-2">&amp;</span>pc, value);
-    <span class="kw">let </span>cycle_count = <span class="number">2</span>;
-    add_cycles(state, cycle_count);
-}
+    <span class="kw">pub fn </span>set_zn(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u16) {
+        <span class="kw">let </span>is_zero = value == <span class="number">0</span>;
+        <span class="kw">let </span>is_negative = (value <span class="kw">as </span>i16) &lt; <span class="number">0</span>;
+        status_flags::set_z(cpu, is_zero);
+        status_flags::set_n(cpu, is_negative);
+    }
 
-<span class="doccomment">/// Push to stack
-///
-/// * Stack pointer = [`State::s`]
-/// * Decrement stack pointer
-/// * Write `value` to memory at stack pointer
-/// * Counts cycles
-///
-/// # Params
-/// * `state` - Current system state
-/// * `value` - One byte value to be written
-</span><span class="kw">pub fn </span>push_byte(state: <span class="kw-2">&amp;mut </span>State, value: u8) {
-    decrement_stack(state, ONE_BYTE);
-    <span class="kw">let </span>pc = state.pc.clone();
-    memory::put_byte(state, <span class="kw-2">&amp;</span>pc, value);
-    <span class="kw">let </span>cycle_count = <span class="number">1</span>;
-    add_cycles(state, cycle_count);
-}
+    <span class="kw">pub fn </span>lda(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u16) {
+        cpu.a = value.to_le_bytes();
+        set_zn(cpu, value);
+    }
 
-<span class="doccomment">/// Pop from stack
-///
-/// * Stack pointer = [`State::s`]
-/// * Read two bytes from memory at stack pointer
-/// * Increment stack pointer
-/// * Counts cycles
-///
-/// # Params
-/// * `state` - Current system state
-///
-/// # Returns
-/// Two byte value from top of stack
-</span><span class="kw">pub fn </span>pop_word(state: <span class="kw-2">&amp;mut </span>State) -&gt; u16 {
-    <span class="kw">let </span>result = memory::get_word(<span class="kw-2">&amp;</span>state, <span class="kw-2">&amp;</span>state.s);
-    increment_stack(state, memory::BYTES_IN_WORD);
-    <span class="kw">let </span>cycle_count = <span class="number">2</span>;
-    add_cycles(state, cycle_count);
-    <span class="kw">return </span>result;
-}
+    <span class="kw">pub fn </span>ldx(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u16) {
+        cpu.x = value.to_le_bytes();
+        set_zn(cpu, value);
+    }
 
-<span class="doccomment">/// Pop from stack
-///
-/// * Stack pointer = [`State::s`]
-/// * Read one byte from memory at stack pointer
-/// * Increment stack pointer
-/// * Counts cycles
-///
-/// # Params
-/// * `state` - Current system state
-///
-/// # Returns
-/// One byte value from top of stack
-</span><span class="kw">pub fn </span>pop_byte(state: <span class="kw-2">&amp;mut </span>State) -&gt; u8 {
-    <span class="kw">let </span>result = memory::get_byte(<span class="kw-2">&amp;</span>state, <span class="kw-2">&amp;</span>state.pc);
-    increment_pc(state, memory::ONE_BYTE);
-    <span class="kw">let </span>cycle_count = <span class="number">1</span>;
-    add_cycles(state, cycle_count);
-    <span class="kw">return </span>result;
-}
+    <span class="kw">pub fn </span>ldy(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u16) {
+        cpu.y = value.to_le_bytes();
+        set_zn(cpu, value);
+    }
 
-<span class="doccomment">/// Program execution
-///
-/// Decodes and executes instruction
-///
-/// # Params
-/// * `state` - Current system state
-/// * `op_code` - One byte op code to be executed
-</span><span class="kw">pub fn </span>execute(state: <span class="kw-2">&amp;mut </span>State, op_code: u8) {
-    <span class="kw">match </span>op_code {
-        <span class="number">0x61 </span>=&gt; adc_61(state),
-        <span class="number">0x63 </span>=&gt; adc_63(state),
-        <span class="number">0x65 </span>=&gt; adc_65(state),
-        <span class="number">0x67 </span>=&gt; adc_67(state),
-        <span class="number">0x69 </span>=&gt; adc_69(state),
-        <span class="number">0x6D </span>=&gt; adc_6d(state),
-        <span class="number">0x6F </span>=&gt; adc_6f(state),
-        <span class="number">0x71 </span>=&gt; adc_71(state),
-        <span class="number">0x72 </span>=&gt; adc_72(state),
-        <span class="number">0x73 </span>=&gt; adc_73(state),
-        <span class="number">0x75 </span>=&gt; adc_75(state),
-        <span class="number">0x77 </span>=&gt; adc_77(state),
-        <span class="number">0x79 </span>=&gt; adc_79(state),
-        <span class="number">0x7D </span>=&gt; adc_7d(state),
-        <span class="number">0x7F </span>=&gt; adc_7f(state),
-        <span class="number">0x21 </span>=&gt; and_21(state),
-        <span class="number">0x23 </span>=&gt; and_23(state),
-        <span class="number">0x25 </span>=&gt; and_25(state),
-        <span class="number">0x27 </span>=&gt; and_27(state),
-        <span class="number">0x29 </span>=&gt; and_29(state),
-        <span class="number">0x2D </span>=&gt; and_2d(state),
-        <span class="number">0x2F </span>=&gt; and_2f(state),
-        <span class="number">0x31 </span>=&gt; and_31(state),
-        <span class="number">0x32 </span>=&gt; and_32(state),
-        <span class="number">0x33 </span>=&gt; and_33(state),
-        <span class="number">0x35 </span>=&gt; and_35(state),
-        <span class="number">0x37 </span>=&gt; and_37(state),
-        <span class="number">0x39 </span>=&gt; and_39(state),
-        <span class="number">0x3D </span>=&gt; and_3d(state),
-        <span class="number">0x3F </span>=&gt; and_3f(state),
-        <span class="number">0x06 </span>=&gt; asl_06(state),
-        <span class="number">0x0A </span>=&gt; asl_0a(state),
-        <span class="number">0x0E </span>=&gt; asl_0e(state),
-        <span class="number">0x16 </span>=&gt; asl_16(state),
-        <span class="number">0x1E </span>=&gt; asl_1e(state),
-        <span class="number">0x90 </span>=&gt; bcc_90(state),
-        <span class="number">0xB0 </span>=&gt; bcs_b0(state),
-        <span class="number">0xF0 </span>=&gt; beq_f0(state),
-        <span class="number">0x24 </span>=&gt; bit_24(state),
-        <span class="number">0x2C </span>=&gt; bit_2c(state),
-        <span class="number">0x34 </span>=&gt; bit_34(state),
-        <span class="number">0x3C </span>=&gt; bit_3c(state),
-        <span class="number">0x89 </span>=&gt; bit_89(state),
-        <span class="number">0x30 </span>=&gt; bmi_30(state),
-        <span class="number">0xD0 </span>=&gt; bne_d0(state),
-        <span class="number">0x10 </span>=&gt; bpl_10(state),
-        <span class="number">0x80 </span>=&gt; bra_80(state),
-        <span class="number">0x00 </span>=&gt; brk_00(state),
-        <span class="number">0x82 </span>=&gt; brl_82(state),
-        <span class="number">0x50 </span>=&gt; bvc_50(state),
-        <span class="number">0x70 </span>=&gt; bvs_70(state),
-        <span class="number">0x18 </span>=&gt; clc_18(state),
-        <span class="number">0xD8 </span>=&gt; cld_d8(state),
-        <span class="number">0x58 </span>=&gt; cli_58(state),
-        <span class="number">0xB8 </span>=&gt; clv_b8(state),
-        <span class="number">0xC1 </span>=&gt; cmp_c1(state),
-        <span class="number">0xC3 </span>=&gt; cmp_c3(state),
-        <span class="number">0xC5 </span>=&gt; cmp_c5(state),
-        <span class="number">0xC7 </span>=&gt; cmp_c7(state),
-        <span class="number">0xC9 </span>=&gt; cmp_c9(state),
-        <span class="number">0xCD </span>=&gt; cmp_cd(state),
-        <span class="number">0xCF </span>=&gt; cmp_cf(state),
-        <span class="number">0xD1 </span>=&gt; cmp_d1(state),
-        <span class="number">0xD2 </span>=&gt; cmp_d2(state),
-        <span class="number">0xD3 </span>=&gt; cmp_d3(state),
-        <span class="number">0xD5 </span>=&gt; cmp_d5(state),
-        <span class="number">0xD7 </span>=&gt; cmp_d7(state),
-        <span class="number">0xD9 </span>=&gt; cmp_d9(state),
-        <span class="number">0xDD </span>=&gt; cmp_dd(state),
-        <span class="number">0xDF </span>=&gt; cmp_df(state),
-        <span class="number">0x02 </span>=&gt; cop_02(state),
-        <span class="number">0xE0 </span>=&gt; cpx_e0(state),
-        <span class="number">0xE4 </span>=&gt; cpx_e4(state),
-        <span class="number">0xEC </span>=&gt; cpx_ec(state),
-        <span class="number">0xC0 </span>=&gt; cpy_c0(state),
-        <span class="number">0xC4 </span>=&gt; cpy_c4(state),
-        <span class="number">0xCC </span>=&gt; cpy_cc(state),
-        <span class="number">0x3A </span>=&gt; dec_3a(state),
-        <span class="number">0xC6 </span>=&gt; dec_c6(state),
-        <span class="number">0xCE </span>=&gt; dec_ce(state),
-        <span class="number">0xD6 </span>=&gt; dec_d6(state),
-        <span class="number">0xDE </span>=&gt; dec_de(state),
-        <span class="number">0xCA </span>=&gt; dex_ca(state),
-        <span class="number">0x88 </span>=&gt; dey_88(state),
-        <span class="number">0x41 </span>=&gt; eor_41(state),
-        <span class="number">0x43 </span>=&gt; eor_43(state),
-        <span class="number">0x45 </span>=&gt; eor_45(state),
-        <span class="number">0x47 </span>=&gt; eor_47(state),
-        <span class="number">0x49 </span>=&gt; eor_49(state),
-        <span class="number">0x4D </span>=&gt; eor_4d(state),
-        <span class="number">0x4F </span>=&gt; eor_4f(state),
-        <span class="number">0x51 </span>=&gt; eor_51(state),
-        <span class="number">0x52 </span>=&gt; eor_52(state),
-        <span class="number">0x53 </span>=&gt; eor_53(state),
-        <span class="number">0x55 </span>=&gt; eor_55(state),
-        <span class="number">0x57 </span>=&gt; eor_57(state),
-        <span class="number">0x59 </span>=&gt; eor_59(state),
-        <span class="number">0x5D </span>=&gt; eor_5d(state),
-        <span class="number">0x5F </span>=&gt; eor_5f(state),
-        <span class="number">0x1A </span>=&gt; inc_1a(state),
-        <span class="number">0xE6 </span>=&gt; inc_e6(state),
-        <span class="number">0xEE </span>=&gt; inc_ee(state),
-        <span class="number">0xF6 </span>=&gt; inc_f6(state),
-        <span class="number">0xFE </span>=&gt; inc_fe(state),
-        <span class="number">0xE8 </span>=&gt; inx_e8(state),
-        <span class="number">0xC8 </span>=&gt; iny_c8(state),
-        <span class="number">0x4C </span>=&gt; jmp_4c(state),
-        <span class="number">0x5C </span>=&gt; jmp_5c(state),
-        <span class="number">0x6C </span>=&gt; jmp_6c(state),
-        <span class="number">0x7C </span>=&gt; jmp_7c(state),
-        <span class="number">0xDC </span>=&gt; jmp_dc(state),
-        <span class="number">0x20 </span>=&gt; jsr_20(state),
-        <span class="number">0x22 </span>=&gt; jsr_22(state),
-        <span class="number">0xFC </span>=&gt; jsr_fc(state),
-        <span class="number">0xA1 </span>=&gt; lda_a1(state),
-        <span class="number">0xA3 </span>=&gt; lda_a3(state),
-        <span class="number">0xA5 </span>=&gt; lda_a5(state),
-        <span class="number">0xA7 </span>=&gt; lda_a7(state),
-        <span class="number">0xA9 </span>=&gt; lda_a9(state),
-        <span class="number">0xAD </span>=&gt; lda_ad(state),
-        <span class="number">0xAF </span>=&gt; lda_af(state),
-        <span class="number">0xB1 </span>=&gt; lda_b1(state),
-        <span class="number">0xB2 </span>=&gt; lda_b2(state),
-        <span class="number">0xB3 </span>=&gt; lda_b3(state),
-        <span class="number">0xB5 </span>=&gt; lda_b5(state),
-        <span class="number">0xB7 </span>=&gt; lda_b7(state),
-        <span class="number">0xB9 </span>=&gt; lda_b9(state),
-        <span class="number">0xBD </span>=&gt; lda_bd(state),
-        <span class="number">0xBF </span>=&gt; lda_bf(state),
-        <span class="number">0xA2 </span>=&gt; ldx_a2(state),
-        <span class="number">0xA6 </span>=&gt; ldx_a6(state),
-        <span class="number">0xAE </span>=&gt; ldx_ae(state),
-        <span class="number">0xB6 </span>=&gt; ldx_b6(state),
-        <span class="number">0xBE </span>=&gt; ldx_be(state),
-        <span class="number">0xA0 </span>=&gt; ldy_a0(state),
-        <span class="number">0xA4 </span>=&gt; ldy_a4(state),
-        <span class="number">0xAC </span>=&gt; ldy_ac(state),
-        <span class="number">0xB4 </span>=&gt; ldy_b4(state),
-        <span class="number">0xBC </span>=&gt; ldy_bc(state),
-        <span class="number">0x46 </span>=&gt; lsr_46(state),
-        <span class="number">0x4A </span>=&gt; lsr_4a(state),
-        <span class="number">0x4E </span>=&gt; lsr_4e(state),
-        <span class="number">0x56 </span>=&gt; lsr_56(state),
-        <span class="number">0x5E </span>=&gt; lsr_5e(state),
-        <span class="number">0x54 </span>=&gt; mvn_54(state),
-        <span class="number">0x44 </span>=&gt; mvp_44(state),
-        <span class="number">0xEA </span>=&gt; nop_ea(state),
-        <span class="number">0x01 </span>=&gt; ora_01(state),
-        <span class="number">0x03 </span>=&gt; ora_03(state),
-        <span class="number">0x05 </span>=&gt; ora_05(state),
-        <span class="number">0x07 </span>=&gt; ora_07(state),
-        <span class="number">0x09 </span>=&gt; ora_09(state),
-        <span class="number">0x0D </span>=&gt; ora_0d(state),
-        <span class="number">0x0F </span>=&gt; ora_0f(state),
-        <span class="number">0x11 </span>=&gt; ora_11(state),
-        <span class="number">0x12 </span>=&gt; ora_12(state),
-        <span class="number">0x13 </span>=&gt; ora_13(state),
-        <span class="number">0x15 </span>=&gt; ora_15(state),
-        <span class="number">0x17 </span>=&gt; ora_17(state),
-        <span class="number">0x19 </span>=&gt; ora_19(state),
-        <span class="number">0x1D </span>=&gt; ora_1d(state),
-        <span class="number">0x1F </span>=&gt; ora_1f(state),
-        <span class="number">0xF4 </span>=&gt; pea_f4(state),
-        <span class="number">0xD4 </span>=&gt; pei_d4(state),
-        <span class="number">0x62 </span>=&gt; per_62(state),
-        <span class="number">0x48 </span>=&gt; pha_48(state),
-        <span class="number">0x8B </span>=&gt; phb_8b(state),
-        <span class="number">0x0B </span>=&gt; phd_0b(state),
-        <span class="number">0x4B </span>=&gt; phk_4b(state),
-        <span class="number">0x08 </span>=&gt; php_08(state),
-        <span class="number">0xDA </span>=&gt; phx_da(state),
-        <span class="number">0x5A </span>=&gt; phy_5a(state),
-        <span class="number">0x68 </span>=&gt; pla_68(state),
-        <span class="number">0xAB </span>=&gt; plb_ab(state),
-        <span class="number">0x2B </span>=&gt; pld_2b(state),
-        <span class="number">0x28 </span>=&gt; plp_28(state),
-        <span class="number">0xFA </span>=&gt; plx_fa(state),
-        <span class="number">0x7A </span>=&gt; ply_7a(state),
-        <span class="number">0xC2 </span>=&gt; rep_c2(state),
-        <span class="number">0x26 </span>=&gt; rol_26(state),
-        <span class="number">0x2A </span>=&gt; rol_2a(state),
-        <span class="number">0x2E </span>=&gt; rol_2e(state),
-        <span class="number">0x36 </span>=&gt; rol_36(state),
-        <span class="number">0x3E </span>=&gt; rol_3e(state),
-        <span class="number">0x66 </span>=&gt; ror_66(state),
-        <span class="number">0x6A </span>=&gt; ror_6a(state),
-        <span class="number">0x6E </span>=&gt; ror_6e(state),
-        <span class="number">0x76 </span>=&gt; ror_76(state),
-        <span class="number">0x7E </span>=&gt; ror_7e(state),
-        <span class="number">0x40 </span>=&gt; rti_40(state),
-        <span class="number">0x6B </span>=&gt; rtl_6b(state),
-        <span class="number">0x60 </span>=&gt; rts_60(state),
-        <span class="number">0xE1 </span>=&gt; sbc_e1(state),
-        <span class="number">0xE3 </span>=&gt; sbc_e3(state),
-        <span class="number">0xE5 </span>=&gt; sbc_e5(state),
-        <span class="number">0xE7 </span>=&gt; sbc_e7(state),
-        <span class="number">0xE9 </span>=&gt; sbc_e9(state),
-        <span class="number">0xED </span>=&gt; sbc_ed(state),
-        <span class="number">0xEF </span>=&gt; sbc_ef(state),
-        <span class="number">0xF1 </span>=&gt; sbc_f1(state),
-        <span class="number">0xF2 </span>=&gt; sbc_f2(state),
-        <span class="number">0xF3 </span>=&gt; sbc_f3(state),
-        <span class="number">0xF5 </span>=&gt; sbc_f5(state),
-        <span class="number">0xF7 </span>=&gt; sbc_f7(state),
-        <span class="number">0xF9 </span>=&gt; sbc_f9(state),
-        <span class="number">0xFD </span>=&gt; sbc_fd(state),
-        <span class="number">0xFF </span>=&gt; sbc_ff(state),
-        <span class="number">0x38 </span>=&gt; sec_38(state),
-        <span class="number">0xF8 </span>=&gt; sed_f8(state),
-        <span class="number">0x78 </span>=&gt; sei_78(state),
-        <span class="number">0xE2 </span>=&gt; sep_e2(state),
-        <span class="number">0x81 </span>=&gt; sta_81(state),
-        <span class="number">0x83 </span>=&gt; sta_83(state),
-        <span class="number">0x85 </span>=&gt; sta_85(state),
-        <span class="number">0x87 </span>=&gt; sta_87(state),
-        <span class="number">0x8D </span>=&gt; sta_8d(state),
-        <span class="number">0x8F </span>=&gt; sta_8f(state),
-        <span class="number">0x91 </span>=&gt; sta_91(state),
-        <span class="number">0x92 </span>=&gt; sta_92(state),
-        <span class="number">0x93 </span>=&gt; sta_93(state),
-        <span class="number">0x95 </span>=&gt; sta_95(state),
-        <span class="number">0x97 </span>=&gt; sta_97(state),
-        <span class="number">0x99 </span>=&gt; sta_99(state),
-        <span class="number">0x9D </span>=&gt; sta_9d(state),
-        <span class="number">0x9F </span>=&gt; sta_9f(state),
-        <span class="number">0xDB </span>=&gt; stp_db(state),
-        <span class="number">0x86 </span>=&gt; stx_86(state),
-        <span class="number">0x8E </span>=&gt; stx_8e(state),
-        <span class="number">0x96 </span>=&gt; stx_96(state),
-        <span class="number">0x84 </span>=&gt; sty_84(state),
-        <span class="number">0x8C </span>=&gt; sty_8c(state),
-        <span class="number">0x94 </span>=&gt; sty_94(state),
-        <span class="number">0x64 </span>=&gt; stz_64(state),
-        <span class="number">0x74 </span>=&gt; stz_74(state),
-        <span class="number">0x9C </span>=&gt; stz_9c(state),
-        <span class="number">0x9E </span>=&gt; stz_9e(state),
-        <span class="number">0xAA </span>=&gt; tax_aa(state),
-        <span class="number">0xA8 </span>=&gt; tay_a8(state),
-        <span class="number">0x5B </span>=&gt; tcd_5b(state),
-        <span class="number">0x1B </span>=&gt; tcs_1b(state),
-        <span class="number">0x7B </span>=&gt; tdc_7b(state),
-        <span class="number">0x14 </span>=&gt; trb_14(state),
-        <span class="number">0x1C </span>=&gt; trb_1c(state),
-        <span class="number">0x04 </span>=&gt; tsb_04(state),
-        <span class="number">0x0C </span>=&gt; tsb_0c(state),
-        <span class="number">0x3B </span>=&gt; tsc_3b(state),
-        <span class="number">0xBA </span>=&gt; tsx_ba(state),
-        <span class="number">0x8A </span>=&gt; txa_8a(state),
-        <span class="number">0x9A </span>=&gt; txs_9a(state),
-        <span class="number">0x9B </span>=&gt; txy_9b(state),
-        <span class="number">0x98 </span>=&gt; tya_98(state),
-        <span class="number">0xBB </span>=&gt; tyx_bb(state),
-        <span class="number">0xCB </span>=&gt; wai_cb(state),
-        <span class="number">0x42 </span>=&gt; wdm_42(state),
-        <span class="number">0xEB </span>=&gt; xba_eb(state),
-        <span class="number">0xFB </span>=&gt; xce_fb(state),
+    <span class="kw">pub fn </span>adc(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u16) -&gt; u16 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>result, <span class="kw-2">mut </span>carry) = lhs.overflowing_add(rhs);
+
+        <span class="kw">let </span>is_carry_set = status_flags::is_set_c(cpu);
+        <span class="kw">if </span>is_carry_set {
+            <span class="kw">let </span>(tmp_result, tmp_carry) = result.overflowing_add(<span class="number">1</span>);
+            result = tmp_result;
+            carry |= tmp_carry;
+        }
+
+        <span class="kw">let </span>signed_overflow = ((lhs <span class="kw">as </span>i16) &lt; <span class="number">0 </span>&amp;&amp; (rhs <span class="kw">as </span>i16) &lt; <span class="number">0 </span>&amp;&amp; (result <span class="kw">as </span>i16) &gt; <span class="number">0</span>)
+            || ((lhs <span class="kw">as </span>i16) &gt; <span class="number">0 </span>&amp;&amp; (rhs <span class="kw">as </span>i16) &gt; <span class="number">0 </span>&amp;&amp; (result <span class="kw">as </span>i16) &lt; <span class="number">0</span>);
+
+        lda(cpu, result);
+        status_flags::set_v(cpu, signed_overflow);
+        status_flags::set_c(cpu, carry);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>sbc(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u16) -&gt; u16 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>result, <span class="kw-2">mut </span>carry) = lhs.overflowing_sub(rhs);
+
+        <span class="kw">let </span>is_carry_set = status_flags::is_set_c(cpu);
+        <span class="kw">if </span>is_carry_set {
+            <span class="kw">let </span>(tmp_result, tmp_carry) = result.overflowing_sub(<span class="number">1</span>);
+            result = tmp_result;
+            carry |= tmp_carry;
+        }
+
+        <span class="kw">let </span>signed_overflow = ((lhs <span class="kw">as </span>i16) &lt; <span class="number">0 </span>&amp;&amp; (rhs <span class="kw">as </span>i16) &gt; <span class="number">0 </span>&amp;&amp; result &gt; <span class="number">0</span>)
+            || ((lhs <span class="kw">as </span>i16) &gt; <span class="number">0 </span>&amp;&amp; (rhs <span class="kw">as </span>i16) &lt; <span class="number">0 </span>&amp;&amp; (result <span class="kw">as </span>i16) &lt; <span class="number">0</span>);
+
+        lda(cpu, result);
+        status_flags::set_v(cpu, signed_overflow);
+        status_flags::set_c(cpu, carry);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>and(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u16) -&gt; u16 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>result = lhs &amp; rhs;
+        lda(cpu, result);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>eor(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u16) -&gt; u16 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>result = lhs ^ rhs;
+        lda(cpu, result);
+        set_zn(cpu, result);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>ora(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u16) -&gt; u16 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>result = lhs | rhs;
+        lda(cpu, result);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>tsb(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u16) -&gt; u16 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>result = lhs | rhs;
+        set_zn(cpu, result);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>trb(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u16) -&gt; u16 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>result = !lhs &amp; rhs;
+        set_zn(cpu, rhs);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>asl(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u16) -&gt; u16 {
+        <span class="kw">let </span>carry = (value <span class="kw">as </span>i16) &lt; <span class="number">0</span>;
+
+        <span class="comment">// If high bit is set, clear it to avoid avoid overflow and set carry flag.
+        </span><span class="kw">let </span>result: u16 = <span class="kw">if </span>carry {
+            <span class="kw">let </span>bitmask = <span class="number">0x7FFF</span>;
+            (value &amp; bitmask) &lt;&lt; <span class="number">1
+        </span>} <span class="kw">else </span>{
+            value &lt;&lt; <span class="number">1
+        </span>};
+
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>lsr(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u16) -&gt; u16 {
+        <span class="kw">let </span>carry = (value &amp; <span class="number">1</span>) &gt; <span class="number">0</span>;
+        <span class="kw">let </span>result = value &gt;&gt; <span class="number">1</span>;
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        (cpu, carry);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>rol(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u16) -&gt; u16 {
+        <span class="kw">let </span>is_carry_set = status_flags::is_set_c(cpu);
+        <span class="kw">let </span>carry = (value <span class="kw">as </span>i16) &lt; <span class="number">0</span>;
+
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">if </span>carry {
+            <span class="kw">let </span>bitmask = <span class="number">0x7FFF</span>;
+            (value &amp; bitmask) &lt;&lt; <span class="number">1
+        </span>} <span class="kw">else </span>{
+            value &lt;&lt; <span class="number">1
+        </span>};
+
+        <span class="kw">if </span>is_carry_set {
+            result += <span class="number">1</span>;
+        }
+
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>ror(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u16) -&gt; u16 {
+        <span class="kw">let </span>is_carry_set = status_flags::is_set_c(cpu);
+        <span class="kw">let </span>carry = (value &amp; <span class="number">1</span>) &gt; <span class="number">0</span>;
+
+        <span class="kw">let </span>result: u16 = <span class="kw">if </span>is_carry_set {
+            (value &gt;&gt; <span class="number">1</span>) | <span class="number">0x8000
+        </span>} <span class="kw">else </span>{
+            value &gt;&gt; <span class="number">1
+        </span>};
+
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>bit(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u16) -&gt; u16 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>result = lhs &amp; rhs;
+        <span class="kw">let </span>is_set_bit_14 = (result &amp; <span class="number">1 </span>&lt;&lt; <span class="number">13</span>) &gt; <span class="number">0</span>;
+        status_flags::set_v(cpu, is_set_bit_14);
+        set_zn(cpu, result);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>compare(cpu: <span class="kw-2">&amp;mut </span>Cpu, lhs: u16, rhs: u16) {
+        <span class="kw">let </span>result = lhs.wrapping_sub(rhs);
+        <span class="kw">let </span>greater_equal = lhs &gt;= rhs;
+        status_flags::set_c(cpu, greater_equal);
+        set_zn(cpu, result);
+    }
+
+    <span class="kw">pub fn </span>dec(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u16) -&gt; u16 {
+        <span class="kw">let </span>result = value.wrapping_sub(<span class="number">1</span>);
+        set_zn(cpu, result);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>inc(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u16) -&gt; u16 {
+        <span class="kw">let </span>result = value.wrapping_add(<span class="number">1</span>);
+        set_zn(cpu, value);
+        <span class="kw">return </span>result;
+    }
+}
+<span class="doccomment">/// 8 bit operations
+</span><span class="kw">pub mod </span>ops_8 {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>registers_8 <span class="kw">as </span>reg;
+
+    <span class="kw">pub fn </span>set_zn(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) {
+        <span class="kw">let </span>is_zero = value == <span class="number">0</span>;
+        <span class="kw">let </span>is_negative = (value <span class="kw">as </span>i8) &lt; <span class="number">0</span>;
+        status_flags::set_z(cpu, is_zero);
+        status_flags::set_n(cpu, is_negative);
+    }
+
+    <span class="kw">pub fn </span>lda(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) {
+        cpu.a[<span class="number">0</span>] = value;
+    }
+
+    <span class="kw">pub fn </span>ldx(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) {
+        cpu.x[<span class="number">0</span>] = value;
+    }
+
+    <span class="kw">pub fn </span>ldy(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) {
+        cpu.y[<span class="number">0</span>] = value;
+    }
+
+    <span class="kw">pub fn </span>adc(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u8) -&gt; u8 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>result, <span class="kw-2">mut </span>carry) = lhs.overflowing_add(rhs);
+
+        <span class="kw">let </span>is_carry_set = status_flags::is_set_c(cpu);
+        <span class="kw">if </span>is_carry_set {
+            <span class="kw">let </span>(tmp_result, tmp_carry) = result.overflowing_add(<span class="number">1</span>);
+            result = tmp_result;
+            carry |= tmp_carry;
+        }
+
+        <span class="kw">let </span>signed_overflow = ((lhs <span class="kw">as </span>i8) &lt; <span class="number">0 </span>&amp;&amp; (rhs <span class="kw">as </span>i8) &lt; <span class="number">0 </span>&amp;&amp; (result <span class="kw">as </span>i8) &gt; <span class="number">0</span>)
+            || ((lhs <span class="kw">as </span>i8) &gt; <span class="number">0 </span>&amp;&amp; (rhs <span class="kw">as </span>i8) &gt; <span class="number">0 </span>&amp;&amp; (result <span class="kw">as </span>i8) &lt; <span class="number">0</span>);
+
+        lda(cpu, result);
+        status_flags::set_v(cpu, signed_overflow);
+        status_flags::set_c(cpu, carry);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>sbc(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u8) -&gt; u8 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>result, <span class="kw-2">mut </span>carry) = lhs.overflowing_sub(rhs);
+
+        <span class="kw">let </span>is_carry_set = status_flags::is_set_c(cpu);
+        <span class="kw">if </span>is_carry_set {
+            <span class="kw">let </span>(tmp_result, tmp_carry) = result.overflowing_sub(<span class="number">1</span>);
+            result = tmp_result;
+            carry |= tmp_carry;
+        }
+
+        <span class="kw">let </span>signed_overflow = ((lhs <span class="kw">as </span>i8) &lt; <span class="number">0 </span>&amp;&amp; (rhs <span class="kw">as </span>i8) &gt; <span class="number">0 </span>&amp;&amp; result &gt; <span class="number">0</span>)
+            || ((lhs <span class="kw">as </span>i8) &gt; <span class="number">0 </span>&amp;&amp; (rhs <span class="kw">as </span>i8) &lt; <span class="number">0 </span>&amp;&amp; (result <span class="kw">as </span>i8) &lt; <span class="number">0</span>);
+
+        lda(cpu, result);
+        status_flags::set_v(cpu, signed_overflow);
+        status_flags::set_c(cpu, carry);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>and(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u8) -&gt; u8 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>result = lhs &amp; rhs;
+        lda(cpu, result);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>eor(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u8) -&gt; u8 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>result = lhs ^ rhs;
+        lda(cpu, result);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>ora(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u8) -&gt; u8 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>result = lhs | rhs;
+        lda(cpu, result);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>tsb(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u8) -&gt; u8 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>result = lhs | rhs;
+        set_zn(cpu, result);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>trb(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u8) -&gt; u8 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>result = !lhs &amp; rhs;
+        set_zn(cpu, rhs);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>asl(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) -&gt; u8 {
+        <span class="kw">let </span>carry = (value <span class="kw">as </span>i8) &lt; <span class="number">0</span>;
+
+        <span class="comment">// If high bit is set, clear it to avoid avoid overflow and set carry flag.
+        </span><span class="kw">let </span>result: u8 = <span class="kw">if </span>carry {
+            <span class="kw">let </span>bitmask = <span class="number">0x7F</span>;
+            (value &amp; bitmask) &lt;&lt; <span class="number">1
+        </span>} <span class="kw">else </span>{
+            value &lt;&lt; <span class="number">1
+        </span>};
+
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        (cpu, carry);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>lsr(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) -&gt; u8 {
+        <span class="kw">let </span>carry = (value &amp; <span class="number">1</span>) &gt; <span class="number">0</span>;
+        <span class="kw">let </span>result = value &gt;&gt; <span class="number">1</span>;
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        (cpu, carry);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>rol(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) -&gt; u8 {
+        <span class="kw">let </span>is_carry_set = status_flags::is_set_c(cpu);
+        <span class="kw">let </span>carry = (value <span class="kw">as </span>i8) &lt; <span class="number">0</span>;
+
+        <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="kw">if </span>carry {
+            <span class="kw">let </span>bitmask = <span class="number">0x7F</span>;
+            (value &amp; bitmask) &lt;&lt; <span class="number">1
+        </span>} <span class="kw">else </span>{
+            value &lt;&lt; <span class="number">1
+        </span>};
+
+        <span class="kw">if </span>is_carry_set {
+            result += <span class="number">1</span>;
+        }
+
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>ror(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) -&gt; u8 {
+        <span class="kw">let </span>is_carry_set = status_flags::is_set_c(cpu);
+        <span class="kw">let </span>carry = (value &amp; <span class="number">1</span>) &gt; <span class="number">0</span>;
+
+        <span class="kw">let </span>result: u8 = <span class="kw">if </span>is_carry_set {
+            (value &gt;&gt; <span class="number">1</span>) | <span class="number">0x80
+        </span>} <span class="kw">else </span>{
+            value &gt;&gt; <span class="number">1
+        </span>};
+
+        set_zn(cpu, result);
+        status_flags::set_c(cpu, carry);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>bit(cpu: <span class="kw-2">&amp;mut </span>Cpu, rhs: u8) -&gt; u8 {
+        <span class="kw">let </span>lhs = reg::get_a(cpu);
+        <span class="kw">let </span>result = lhs &amp; rhs;
+        <span class="kw">let </span>is_set_bit_6 = (result &amp; (<span class="number">1 </span>&lt;&lt; <span class="number">5</span>)) &gt; <span class="number">0</span>;
+        status_flags::set_v(cpu, is_set_bit_6);
+        set_zn(cpu, result);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>compare(cpu: <span class="kw-2">&amp;mut </span>Cpu, lhs: u8, rhs: u8) {
+        <span class="kw">let </span>result = lhs.wrapping_sub(rhs);
+        <span class="kw">let </span>greater_equal = lhs &gt;= rhs;
+        status_flags::set_c(cpu, greater_equal);
+        set_zn(cpu, result);
+    }
+
+    <span class="kw">pub fn </span>dec(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) -&gt; u8 {
+        <span class="kw">let </span>result = value.wrapping_sub(<span class="number">1</span>);
+        set_zn(cpu, result);
+        <span class="kw">return </span>result;
+    }
+
+    <span class="kw">pub fn </span>inc(cpu: <span class="kw-2">&amp;mut </span>Cpu, value: u8) -&gt; u8 {
+        <span class="kw">let </span>result = value.wrapping_add(<span class="number">1</span>);
+        set_zn(cpu, value);
+        <span class="kw">return </span>result;
     }
 }
 </code></pre></div></section></main></body></html>

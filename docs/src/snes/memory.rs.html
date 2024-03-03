@@ -112,51 +112,7 @@
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
 <a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Controls memory IO.
+</pre></div><pre class="rust"><code><span class="doccomment">//! System Memory
 //!
 //! The SNES uses memory maps to access RAM/ROM etc. A lot of the mapping is determined by the cartridge,
 //! and there are a number of different mapping structures depending on which cartridge is used.
@@ -165,152 +121,108 @@
 //!
 //! # Todo
 //! * Implement memory mapping
+</span><span class="kw">use </span><span class="kw">crate</span>::cartridge;
 
-</span><span class="kw">use </span><span class="kw">crate</span>::snes_address::SnesAddress;
-<span class="kw">use </span><span class="kw">crate</span>::state::State;
-
-<span class="kw">pub type </span>Address = SnesAddress;
-<span class="kw">pub type </span>BaseAddress = u16;
-<span class="kw">pub type </span>Word = u16;
-<span class="kw">pub type </span>Byte = u8;
-
-<span class="kw">pub const </span>ONE_BYTE: u16 = <span class="number">1</span>;
-<span class="kw">pub const </span>BITS_IN_BYTE: u16 = <span class="number">8</span>;
-<span class="kw">pub const </span>BYTES_IN_WORD: u16 = <span class="number">2</span>;
-<span class="kw">pub const </span>BITS_IN_WORD: u16 = BYTES_IN_WORD * BITS_IN_BYTE;
-<span class="kw">pub const </span>BYTES_IN_LONG: u16 = <span class="number">3</span>;
-<span class="kw">pub const </span>MEMORY_MAX: usize = <span class="number">0xFFFFFF</span>;
-
-<span class="doccomment">/// Load a binary file into memory
-///
-/// Copies the data from `binary` into [`State::mem`]
-///
-/// # Params
-/// * `state` - Current system state
-/// * `binary` - Vector containing program binary data
-</span><span class="kw">pub fn </span>load(state: <span class="kw-2">&amp;mut </span>State, binary: <span class="kw-2">&amp;</span>Vec&lt;u8&gt;) {
-    state.mem[<span class="number">0</span>..binary.len()].copy_from_slice(<span class="kw-2">&amp;</span>binary[..]);
+<span class="kw">pub struct </span>Memory {
+    data: Vec&lt;u8&gt;,
+    cartridge_type: cartridge::CartridgeType,
+    rom_size: usize,
 }
 
-<span class="doccomment">/// Memory write
-</span><span class="kw">pub fn </span>put_word(state: <span class="kw-2">&amp;mut </span>State, address: <span class="kw-2">&amp;</span>Address, value: u16) {
-    <span class="kw">let </span>addr = usize::from(address);
-    <span class="kw">let </span>result = u16::to_le_bytes(value);
-    state.mem[addr..addr + <span class="number">2</span>].copy_from_slice(<span class="kw-2">&amp;</span>result);
+<span class="kw">impl </span>Default <span class="kw">for </span>Memory {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            data: <span class="macro">vec!</span>(),
+            cartridge_type: cartridge::CartridgeType::None,
+            rom_size: <span class="number">0</span>,
+        }
+    }
 }
 
-<span class="doccomment">/// Memory write
-</span><span class="kw">pub fn </span>put_byte(state: <span class="kw-2">&amp;mut </span>State, address: <span class="kw-2">&amp;</span>Address, value: u8) {
-    <span class="kw">let </span>addr = usize::from(address);
-    state.mem[addr] = value;
-}
+<span class="doccomment">/// Memory I/O
+</span><span class="kw">pub mod </span>io {
 
-<span class="doccomment">/// Memory read
-</span><span class="kw">pub fn </span>get_word(state: <span class="kw-2">&amp;</span>State, address: <span class="kw-2">&amp;</span>Address) -&gt; Word {
-    <span class="kw">let </span>addr = usize::from(address);
-    <span class="kw">let </span>bytes = [state.mem[addr], state.mem[addr + <span class="number">1</span>]];
-    <span class="kw">let </span>result = u16::from_le_bytes(bytes);
-    <span class="kw">return </span>result;
-}
+    <span class="doccomment">/// 16 bit operations
+    </span><span class="kw">pub mod </span>word {
+        <span class="kw">use </span><span class="kw">crate</span>::cpu;
 
-<span class="doccomment">/// Memory read
-</span><span class="kw">pub fn </span>get_byte(state: <span class="kw-2">&amp;</span>State, address: <span class="kw-2">&amp;</span>Address) -&gt; Byte {
-    <span class="kw">let </span>addr = usize::from(address);
-    <span class="kw">return </span>state.mem[addr];
-}
+        <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw-2">*</span>;
 
-<span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>test {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
-
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_put_word() {
-        <span class="kw">let </span><span class="kw-2">mut </span>state = State::default();
-
-        {
-            <span class="kw">let </span>address = SnesAddress::from((<span class="number">0</span>, <span class="number">50</span>));
-            <span class="kw">let </span>value = <span class="number">0x25f9</span>;
-            put_word(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;</span>address, value);
-            <span class="kw">let </span>result = u16::from_le_bytes([state.mem[<span class="number">50</span>], state.mem[<span class="number">51</span>]]);
-            <span class="macro">assert_eq!</span>(result, value);
+        <span class="doccomment">/// Read using address mapping
+        </span><span class="kw">pub fn </span>read(mem: <span class="kw-2">&amp;</span>Memory, address: usize) -&gt; u16 {
+            <span class="kw">let </span>address = map_address(address, <span class="kw-2">&amp;</span>mem.cartridge_type);
+            <span class="kw">let </span>result = read_nomap(mem, address);
+            <span class="kw">return </span>result;
         }
 
-        {
-            <span class="kw">let </span>address = SnesAddress::from((<span class="number">1</span>, <span class="number">50</span>));
-            <span class="kw">let </span>value = <span class="number">0x25f9</span>;
-            put_word(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;</span>address, value);
-            <span class="kw">let </span>addr = usize::from(address);
-            <span class="kw">let </span>result = u16::from_le_bytes([state.mem[addr], state.mem[addr + <span class="number">1</span>]]);
-            <span class="macro">assert_eq!</span>(result, value);
+        <span class="doccomment">/// Write using address mapping
+        </span><span class="kw">pub fn </span>write(mem: <span class="kw-2">&amp;mut </span>Memory, address: usize, value: u16) {
+            <span class="kw">let </span>address = map_address(address, <span class="kw-2">&amp;</span>mem.cartridge_type);
+            <span class="kw">let </span>bytes = value.to_be_bytes();
+            mem.data[address..address + <span class="number">2</span>].copy_from_slice(<span class="kw-2">&amp;</span>bytes);
+        }
+
+        <span class="doccomment">/// Read without address mapping
+        </span><span class="kw">pub fn </span>read_nomap(mem: <span class="kw-2">&amp;</span>Memory, address: usize) -&gt; u16 {
+            <span class="kw">let </span>bytes = [mem.data[address], mem.data[address + <span class="number">1</span>]];
+            <span class="kw">let </span>result = u16::from_le_bytes(bytes);
+            <span class="kw">return </span>result;
+        }
+
+        <span class="kw">pub fn </span>fetch(mem: <span class="kw-2">&amp;</span>Memory, cpu: <span class="kw-2">&amp;mut </span>cpu::Cpu) -&gt; u16 {
+            <span class="kw">let </span>address = cpu::get_pc_address(cpu);
+            <span class="kw">let </span>result = read_nomap(mem, address);
+            <span class="kw">let </span>next_address = address + <span class="number">2</span>;
+            cpu::set_pc_address(cpu, next_address);
+            <span class="kw">return </span>result;
         }
     }
 
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_put_byte() {
-        <span class="kw">let </span><span class="kw-2">mut </span>state = State::default();
+    <span class="doccomment">/// 8 bit operations
+    </span><span class="kw">pub mod </span>byte {
+        <span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw-2">*</span>;
+        <span class="kw">use </span><span class="kw">crate</span>::cpu;
 
-        {
-            <span class="kw">let </span>address = SnesAddress::from((<span class="number">0</span>, <span class="number">50</span>));
-            <span class="kw">let </span>value = <span class="number">0x25</span>;
-            put_byte(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;</span>address, value);
-            <span class="kw">let </span>result = state.mem[<span class="number">50</span>];
-            <span class="macro">assert_eq!</span>(result, value);
+        <span class="doccomment">/// Read using address mapping
+        </span><span class="kw">pub fn </span>read(mem: <span class="kw-2">&amp;</span>Memory, address: usize) -&gt; u8 {
+            <span class="kw">let </span>address = map_address(address, <span class="kw-2">&amp;</span>mem.cartridge_type);
+            <span class="kw">let </span>result = read_nomap(mem, address);
+            <span class="kw">return </span>result;
         }
 
-        {
-            <span class="kw">let </span>address = SnesAddress::from((<span class="number">1</span>, <span class="number">50</span>));
-            <span class="kw">let </span>value = <span class="number">0xf9</span>;
-            put_byte(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;</span>address, value);
-            <span class="kw">let </span>addr = usize::from(address);
-            <span class="kw">let </span>result = state.mem[addr];
-            <span class="macro">assert_eq!</span>(result, value);
-        }
-    }
-
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_get_word() {
-        <span class="kw">let </span><span class="kw-2">mut </span>state = State::default();
-
-        {
-            <span class="kw">let </span>addr: usize = <span class="number">20</span>;
-            <span class="kw">let </span>value: u16 = <span class="number">0x25f9</span>;
-            <span class="kw">let </span>address = SnesAddress::from(addr);
-            put_word(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;</span>address, value);
-            <span class="kw">let </span>result = get_word(<span class="kw-2">&amp;</span>state, <span class="kw-2">&amp;</span>address);
-            <span class="macro">assert_eq!</span>(result, value);
+        <span class="doccomment">/// Write using address mapping
+        </span><span class="kw">pub fn </span>write(mem: <span class="kw-2">&amp;mut </span>Memory, address: usize, value: u8) {
+            <span class="kw">let </span>address = map_address(address, <span class="kw-2">&amp;</span>mem.cartridge_type);
+            mem.data[address] = value;
         }
 
-        {
-            <span class="kw">let </span>addr: usize = <span class="number">0x102030</span>;
-            <span class="kw">let </span>value: u16 = <span class="number">0x2AB</span>;
-            <span class="kw">let </span>address = SnesAddress::from(addr);
-            put_word(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;</span>address, value);
-            <span class="kw">let </span>result = get_word(<span class="kw-2">&amp;</span>state, <span class="kw-2">&amp;</span>address);
-            <span class="macro">assert_eq!</span>(result, value);
+        <span class="doccomment">/// Read without address mapping
+        </span><span class="kw">pub fn </span>read_nomap(mem: <span class="kw-2">&amp;</span>Memory, address: usize) -&gt; u8 {
+            <span class="kw">return </span>mem.data[address];
+        }
+
+        <span class="kw">pub fn </span>fetch(mem: <span class="kw-2">&amp;</span>Memory, cpu: <span class="kw-2">&amp;mut </span>cpu::Cpu) -&gt; u8 {
+            <span class="kw">let </span>address = cpu::get_pc_address(cpu);
+            <span class="kw">let </span>result = read_nomap(mem, address);
+            <span class="kw">let </span>next_address = address + <span class="number">2</span>;
+            cpu::set_pc_address(cpu, next_address);
+            <span class="kw">return </span>result;
         }
     }
+}
 
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_get_byte() {
-        <span class="kw">let </span><span class="kw-2">mut </span>state = State::default();
+<span class="kw">pub fn </span>load_binary(mem: <span class="kw-2">&amp;mut </span>Memory, bin: <span class="kw-2">&amp;</span>Vec&lt;u8&gt;) {
+    mem.data = cartridge::lo_rom::reserve_memory();
+    mem.cartridge_type = cartridge::CartridgeType::LoRom;
+    mem.rom_size = bin.len();
+    mem.data[<span class="number">0</span>..mem.rom_size].copy_from_slice(<span class="kw-2">&amp;</span>bin[<span class="number">0</span>..]);
+}
 
-        {
-            <span class="kw">let </span>addr: usize = <span class="number">20</span>;
-            <span class="kw">let </span>value: u8 = <span class="number">0x25</span>;
-            <span class="kw">let </span>address = SnesAddress::from(addr);
-            put_byte(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;</span>address, value);
-            <span class="kw">let </span>result = get_byte(<span class="kw-2">&amp;</span>state, <span class="kw-2">&amp;</span>address);
-            <span class="macro">assert_eq!</span>(result, value);
-        }
 
-        {
-            <span class="kw">let </span>addr: usize = <span class="number">0x102030</span>;
-            <span class="kw">let </span>value: u16 = <span class="number">0x25f9</span>;
-            <span class="kw">let </span>address = SnesAddress::from(addr);
-            put_word(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;</span>address, value);
-            <span class="kw">let </span>result = get_byte(<span class="kw-2">&amp;</span>state, <span class="kw-2">&amp;</span>address);
-            <span class="macro">assert_eq!</span>(result, <span class="number">0xf9</span>);
-        }
+<span class="kw">pub fn </span>map_address(address: usize, cartridge_type: <span class="kw-2">&amp;</span>cartridge::CartridgeType) -&gt; usize {
+    <span class="kw">match </span>cartridge_type {
+        cartridge::CartridgeType::LoRom =&gt; <span class="kw">return </span>cartridge::lo_rom::map_address(address),
+        <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="number">0</span>,
     }
 }
 </code></pre></div></section></main></body></html>

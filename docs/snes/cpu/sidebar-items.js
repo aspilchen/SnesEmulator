@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["add_cycles","decrement_stack","execute","fetch_byte","fetch_word","increment_pc","increment_stack","pop_byte","pop_word","push_byte","push_word","read_byte","read_word","write_byte","write_word"]};
+window.SIDEBAR_ITEMS = {"fn":["add_cycles","get_pc_address","set_pc_address"],"mod":["ops_16","ops_8","registers_16","registers_8","status_flags"],"struct":["Cpu","Status"]};

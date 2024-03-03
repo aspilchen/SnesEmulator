@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["BITS_IN_BYTE","BITS_IN_WORD","BYTES_IN_LONG","BYTES_IN_WORD","MEMORY_MAX","ONE_BYTE"],"fn":["get_byte","get_word","load","put_byte","put_word"],"type":["Address","BaseAddress","Byte","Word"]};
+window.SIDEBAR_ITEMS = {"fn":["load_binary","map_address"],"mod":["io"],"struct":["Memory"]};

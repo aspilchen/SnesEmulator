@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["addr","cpu","instructions","memory","multi_register","snes_address","state","status"]};
+window.SIDEBAR_ITEMS = {"mod":["address_mode","cartridge","cpu","instructions","memory","snes"]};
