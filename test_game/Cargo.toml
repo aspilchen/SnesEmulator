@@ -1,13 +1,13 @@
 [package]
-name = "snes"
+name = "test_game"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bitmask-enum = "2.2.3"
-debug_print = "1.0.0"
+snes = {path = "../snes"}
+
 bitflags = "2.4.2"
 lazy_static = "1.4.0"
 rand = "0.8.5"

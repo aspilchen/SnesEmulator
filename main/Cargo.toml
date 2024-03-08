@@ -4,4 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+
 snes = {path = "../snes"}
+test_game = {path = "../test_game"}

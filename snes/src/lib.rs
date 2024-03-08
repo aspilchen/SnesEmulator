@@ -1,5 +1,5 @@
 pub mod memory;
-pub mod cpu;
+pub mod ricoh5a22;
 pub mod address_mode;
 pub mod instructions;
 pub mod snes;

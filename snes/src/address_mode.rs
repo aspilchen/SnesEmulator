@@ -1,84 +1,96 @@
 //! Snes Addressing Modes
 //!
-//! Everything here will fetch and read as needed. These will change the [`sys`] in
-//! a number of ways such as incrementing the [`sys::pc`], or modifying the [`sys::dbr`].
-//!
-//! The SNES has a 24 bit address space but only 16 bit registers.
-//! Values are combined using a number of address modes, registers
-//! and indirection to access the full 24 bit range.
-//!
-//! For now I have commented out the more complex address modes and left the simple
-//! modes implemented. Just so I can progress on other parts of the system.
-//! These will be worked on slowly as I find more information.
-//!
-//! These are difficult to implement correctly. Clear documentation on these has been
-//! difficult to find. Handling things like indexing overflow will be dealth with
-//! over time.
-//!
-//! Testing the complex modes needs a lot of set up and precision. I am slowly working
-//! on this, but it's hard to know if the tests are correct.
-//!
-//! # Extra Notes
-//!
-//! SNES addresses will be shown as `bank` : `address` where `bank` is the high byte, and `address`
-//! is the two low bytes.
+//! Dereference address to be used for read/write operations.
+//! Each instruction has an address mode that determines where
+//! to find an operand (if one is needed).
+use std::ops::Add;
 
-use crate::cartridge;
 use crate::memory;
-use crate::cpu::*;
+use crate::ricoh5a22::*;
 use crate::snes::Snes;
-use crate::cartridge::*;
 
-/// Immediate
-///
-/// * Program counter = [`sys::pc`]
-/// * Provides current program counter as address
-/// * Increments program counter
-///
-/// # Address Formation
-/// * `0` : [`sys::d`] + `byte`
-///
-/// # Note
-/// Direct page bank is always zero
-///
-/// # Params
-/// * `sys` - Current system sys
-///
-/// # Returns
-/// [`usize`]
-pub fn immediate16(sys: &mut Snes) -> usize {
+pub enum AddressMode {
+    AbsIndexIndir,
+    AbsIndexX,
+    AbsIndexY,
+    AbsIndir,
+    AbsLong,
+    AbsLongIndex,
+    Absolute,
+    Direct,
+    DPIndexIndir,
+    DPIndexX,
+    DPIndexY,
+    DPIndir,
+    DPIndirIndex,
+    DPIndirIndexLong,
+    DPIndirLong,
+    ImmediateM,
+    ImmediateX,
+    PCRel,
+}
+
+pub fn deref_address(sys: &mut Snes, mode: &AddressMode) -> usize {
+    use AddressMode::*;
+
+    match mode {
+        AbsIndexIndir => absolute_indexed_indirect(sys),
+        AbsIndexX => absolute_indexed_x(sys),
+        AbsIndexY => absolute_indexed_y(sys),
+        AbsIndir => absolute_indirect(sys),
+        AbsLong => absolute_long(sys),
+        AbsLongIndex => absolute_long_indexed(sys),
+        Absolute => absolute(sys),
+        Direct => direct(sys),
+        DPIndexIndir => direct_indexed_indirect(sys),
+        DPIndexX => direct_indexed_x(sys),
+        DPIndexY => direct_indexed_y(sys),
+        DPIndir => direct_indirect(sys),
+        DPIndirIndex => direct_indirect_indexed(sys),
+        DPIndirIndexLong => direct_indirect_indexed_long(sys),
+        DPIndirLong => direct_indirect_long(sys),
+        ImmediateM => immediate_m(sys),
+        ImmediateX => immediate_x(sys),
+        PCRel => pc_relative(sys),
+        _ => panic!("Address mode not implemented"),
+    }
+}
+
+pub fn immediate_m(sys: &mut Snes) -> usize {
     let result = get_pc_address(&sys.cpu);
-    let _ = memory::io::word::fetch(&sys.mem, &mut sys.cpu);
+
+    let increment = if status_flags::is_set_m(&sys.cpu) {
+        1
+    } else {
+        2
+    };
+
+    let new_pc = memory::move_pc(result, &sys.mem.cartridge_type, increment);
+    set_pc_address(&mut sys.cpu, new_pc);
+
     return result;
 }
 
-pub fn immediate8(sys: &mut Snes) -> usize {
+pub fn immediate_x(sys: &mut Snes) -> usize {
     let result = get_pc_address(&sys.cpu);
-    let _ = memory::io::byte::fetch(&sys.mem, &mut sys.cpu);
+
+    let increment = if status_flags::is_set_m(&sys.cpu) {
+        1
+    } else {
+        2
+    };
+
+    let new_pc = memory::move_pc(result, &sys.mem.cartridge_type, increment);
+    set_pc_address(&mut sys.cpu, new_pc);
+
     return result;
 }
 
-/// Direct Page
-///
-/// Fetches the next byte and adds it with [`sys::d`]
-///
-/// # Address Formation
-/// * `0` : [`sys::d`] + `byte`
-///
-/// # Note
-/// Direct page bank is always zero
-///
-/// # Params
-/// * `sys` - Current system sys
-///
-/// # Returns
-/// [`usize`]
 pub fn direct(sys: &mut Snes) -> usize {
     let cpu = &mut sys.cpu;
     let mem = &sys.mem;
-    let byte =  memory::io::byte::fetch(mem, cpu);
+    let value = memory::io::byte::fetch(mem, cpu);
     let direct_page = registers_16::get_d(cpu);
-    
     let low_byte_mask = 0x00FF;
     let is_non_zero = (direct_page & low_byte_mask) != 0;
     if is_non_zero {
@@ -87,252 +99,174 @@ pub fn direct(sys: &mut Snes) -> usize {
     }
 
     let bank = 0;
-    let offset = direct_page.wrapping_add(byte as u16);
-    let result = make_address(bank, offset);
+    let offset = direct_page.wrapping_add(value as u16);
+    let result = memory::make_address(bank, offset);
     return result;
 }
 
-/// Todo
-///
-/// Takes the [`direct`] address and adds it with [`sys::x`].
-///
-/// # Address Formation
-/// * bank = 0
-/// * address = [`direct`] + [`sys::x`]
-/// * result = bank : address
-///
-/// # Params
-/// * `sys` - Current system sys
-///
-/// # Returns
-/// [`usize`]
 pub fn direct_indexed_x(sys: &mut Snes) -> usize {
-    todo!();
-    //     let mut address = direct(sys);
-    //     let addr = address.get_address();
-    //     let index = sys.x.get_16();
-    //     address.set_address(addr + index);
-    //     return address;
+    let address = direct(sys);
+    let cpu = &mut sys.cpu;
+    let index = if status_flags::is_set_x(cpu) {
+        registers_8::get_x(cpu) as usize
+    } else {
+        registers_16::get_x(cpu) as usize
+    };
+    let result = address + index;
+    return result;
 }
 
-/// Todo
-///
-/// Takes the [`direct`] address and adds it with [`sys::y`].
-///
-/// # Address Formation
-/// * bank = 0
-/// * address = [`direct`] + [`sys::y`]
-/// * result = bank : address
-///
-/// # Params
-/// * `sys` - Current system sys
-///
-/// # Returns
-/// [`usize`]
 pub fn direct_indexed_y(sys: &mut Snes) -> usize {
-    todo!();
-    //     let mut address = direct(sys);
-    //     let addr = address.get_address();
-    //     let index = sys.y.get_16();
-    //     address.set_address(addr + index);
-    //     return address;
+    let address = direct(sys);
+    let cpu = &mut sys.cpu;
+    let index = if status_flags::is_set_x(cpu) {
+        registers_8::get_y(cpu) as usize
+    } else {
+        registers_16::get_y(cpu) as usize
+    };
+    let result = address + index;
+    return result;
 }
 
-/// Todo
-///
-/// Reads two bytes from the [`direct_indexed_x`] and combines with [`sys::dbr`] to
-/// form an address.
-///
-/// # Address Formation
-/// * bank = [`sys::dbr`]
-/// * address = read([`direct_indexed_x`])
-/// * result = bank : address
-///
-/// # Params
-/// * `sys` - Current system sys
-///
-/// # Returns
-/// [`usize`]
 pub fn direct_indexed_indirect(sys: &mut Snes) -> usize {
-    todo!();
-    //     let address = direct_indexed_x(sys);
-    //     let addr = cpu::read_word(sys, &address);
-    //     let bank = sys.dbr;
-    //     let result = usize::from((bank, addr));
-    //     return result;
+    let address = direct_indexed_x(sys);
+    let offset = memory::io::word::read(&sys.mem, address);
+    let bank = registers_8::get_dbr(&sys.cpu);
+    let result = memory::make_address(bank, offset);
+    return result;
 }
 
-/// Todo
 pub fn direct_indirect(sys: &mut Snes) -> usize {
-    todo!();
-    //     let address = direct(sys);
-    //     let address = cpu::read_word(sys, &address);
-    //     let bank = sys.dbr;
-    //     let result  = usize::from((bank, address));
-    //     return result;
+    let address = direct(sys);
+    let offset = memory::io::word::read(&sys.mem, address);
+    let bank = registers_8::get_dbr(&sys.cpu);
+    let result = memory::make_address(bank, offset);
+    return result;
 }
 
-/// Todo
 pub fn direct_indirect_long(sys: &mut Snes) -> usize {
-    todo!();
-    //     let address = direct(sys);
-    //     let addr = cpu::read_word(sys, &address);
-    //     let bank = cpu::read_byte(sys, &(address + 2));
-    //     let result = usize::from((bank, addr));
-    //     return result;
+    let address = direct(sys);
+    let mut bytes = [0; std::mem::size_of::<usize>()];
+    let mem = &sys.mem;
+    bytes[0] = memory::io::byte::read(mem, address);
+    bytes[1] = memory::io::byte::read(mem, address + 1);
+    bytes[2] = memory::io::byte::read(mem, address + 2);
+    let result = usize::from_le_bytes(bytes);
+    return result;
 }
 
-/// Todo
 pub fn direct_indirect_indexed(sys: &mut Snes) -> usize {
-    todo!();
-    //     let mut address = direct_indirect(sys);
-    //     let addr = address.get_address();
-    //     let index = sys.y.get_16();
-    //     address.set_address(addr + index);
-    //     return address;
+    let address = direct_indirect(sys);
+    let index = if status_flags::is_set_x(&sys.cpu) {
+        registers_8::get_y(&sys.cpu) as usize
+    } else {
+        registers_16::get_y(&sys.cpu) as usize
+    };
+    let result = address + index;
+    return result;
 }
 
-// pub fn direct_indirect_indexed_long(sys: &mut Snes::sys) -> usize {
-//     let address = direct_indirect_long(sys);
-//     let index = sys.get_y16();
-//     let result = address + index as usize;
-//     return result;
-// }
+pub fn direct_indirect_indexed_long(sys: &mut Snes) -> usize {
+    let address = direct_indirect_long(sys);
+    let index = if status_flags::is_set_x(&sys.cpu) {
+        registers_8::get_y(&sys.cpu) as usize
+    } else {
+        registers_16::get_y(&sys.cpu) as usize
+    };
+    let result = address + index as usize;
+    return result;
+}
 
-/// Absolute
-///
-/// Fetches the next two program bytes and combines them with [`sys::dbr`] to
-/// form an address.
-///
-/// # Address Formation
-/// * bank = [`sys::dbr`]
-/// * address = [`cpu::fetch_word`]
-/// * result = bank : address
-///
-/// # Params
-/// * `sys` - Current system sys
-///
-/// # Returns
-/// [`usize`]
 pub fn absolute(sys: &mut Snes) -> usize {
     let mem = &sys.mem;
     let cpu = &mut sys.cpu;
     let bank = registers_8::get_dbr(cpu);
     let offset = memory::io::word::fetch(mem, cpu);
-    let result = cartridge::make_address(bank, offset);
+    let result = memory::make_address(bank, offset);
     return result;
 }
 
-/// Todo
 pub fn absolute_indexed_x(sys: &mut Snes) -> usize {
-    todo!();
-    //     let mut address = absolute(sys);
-    //     let index = sys.x.get_16();
-    //     let result = address + index as usize;
-    //     return result;
+    let address = absolute(sys);
+    let index = if status_flags::is_set_x(&sys.cpu) {
+        registers_8::get_x(&sys.cpu) as usize
+    } else {
+        registers_16::get_x(&sys.cpu) as usize
+    };
+    let result = address + index;
+    return result;
 }
 
-/// Todo
 pub fn absolute_indexed_y(sys: &mut Snes) -> usize {
-    todo!();
-    //     let address = absolute(sys);
-    //     let index = sys.get_y16();
-    //     let result = address + index as usize;
-    //     return result;
+    let address = absolute(sys);
+    let index = if status_flags::is_set_x(&sys.cpu) {
+        registers_8::get_x(&sys.cpu) as usize
+    } else {
+        registers_16::get_x(&sys.cpu) as usize
+    };
+    let result = address + index;
+    return result;
 }
 
-/// Todo
 pub fn absolute_long(sys: &mut Snes) -> usize {
-    todo!();
-    //     let mut bytes = [0; mem::size_of::<usize>()];
-    //     bytes[0] = cpu::fetch_byte(sys);
-    //     bytes[1] = cpu::fetch_byte(sys);
-    //     bytes[2] = cpu::fetch_byte(sys);
-    //     let result = usize::from_le_bytes(bytes);
-    //     return result;
+    let mem = &mut sys.mem;
+    let cpu = &mut sys.cpu;
+    let mut bytes = [0; std::mem::size_of::<usize>()];
+    bytes[0] = memory::io::byte::fetch(mem, cpu);
+    bytes[1] = memory::io::byte::fetch(mem, cpu);
+    bytes[2] = memory::io::byte::fetch(mem, cpu);
+    let result = usize::from_le_bytes(bytes);
+    return result;
 }
 
-/// Todo
 pub fn absolute_long_indexed(sys: &mut Snes) -> usize {
-    todo!();
-    //     let address = absolute_long(sys);
-    //     let index = sys.get_x16();
-    //     let result = address + index as usize;
-    //     return result;
+    let address = absolute_long(sys);
+    let index = if status_flags::is_set_x(&sys.cpu) {
+        registers_8::get_x(&sys.cpu) as usize
+    } else {
+        registers_16::get_x(&sys.cpu) as usize
+    };
+    let result = address + index;
+    return result;
 }
 
-/// Todo
 pub fn absolute_indirect(sys: &mut Snes) -> usize {
-    todo!();
-    //     let address = absolute(sys);
-    //     let address = cpu::read_word(sys, address);
-    //     let result = combine_dbr(sys, address);
-    //     return result;
+    let address = absolute(sys);
+    let offset = memory::io::word::read(&sys.mem, address);
+    let bank = registers_8::get_dbr(&sys.cpu);
+    let result = memory::make_address(bank, offset);
+    return result;
 }
 
-/// Todo
 pub fn absolute_indexed_indirect(sys: &mut Snes) -> usize {
-    todo!();
-    //     let
-    //     let x = u16::from_le_bytes(sys.x);
-    //     let abs = cpu::fetch_word(sys) + x;
-    //     let result = sys.mem.get_word(abs as usize);
-    //     return result as usize;
+    let address = absolute_indexed_x(sys);
+    let offset = memory::io::word::read(&sys.mem, address);
+    let bank = registers_8::get_dbr(&sys.cpu);
+    let result = memory::make_address(bank, offset);
+    return result;
 }
 
-/// Program counter relative
-///
-/// Forms a new address by fetching the next byte, and using it as
-/// a signed offset from the program counter.
-///
-/// # Address Formation
-/// * bank = [`sys::get_pbr`]
-/// * address = ([`cpu::fetch_byte`] as [i8]) + [`sys::pc`][`usize::get_address`]
-/// * result = bank : address
-///
-/// # Params
-/// * `sys` - Current system sys
-///
-/// # Returns
-/// [`usize`]
 pub fn pc_relative(sys: &mut Snes) -> usize {
-    todo!();
-    // let byte = mmap.fetch(sys);
-    // let bank = 0;
-    // let offset = sys.cpu.pc.wrapping_add_signed(byte as i16);
-    // let result = make_address(bank, offset);
-    // return result;
+    let cpu = &mut sys.cpu;
+    let mem = &sys.mem;
+    let offset = memory::io::byte::fetch(mem, cpu) as i8;
+    let curr_pc = get_pc_address(cpu);
+    let result = curr_pc.wrapping_add_signed(offset as isize);
+    return result;
 }
 
-/// Todo
 pub fn pc_relative_long(sys: &mut Snes) -> usize {
-    todo!();
-    //     let pc = sys.pc;
-    //     let offset = cpu::fetch_word(sys);
-    //     let result = pc.wrapping_add_signed(offset as i16);
-    //     return result as usize;
+    let offset = memory::io::word::fetch(&sys.mem, &mut sys.cpu);
+    let curr_pc = get_pc_address(&sys.cpu);
+    let result = curr_pc.wrapping_add_signed(offset as isize);
+    return result;
 }
 
-/// stack pointer relative
-///
-/// Forms a new address by fetching the next byte, and using it as
-/// a signed offset from the stack pointer.
-///
-/// # Address Formation
-/// * bank = [`sys::s`][`usize::get_bank`]
-/// * address = ([`cpu::fetch_byte`] as [i8]) + [`sys::s`][`usize::get_address`]
-/// * result = bank : address
-///
-/// # Params
-/// * `sys` - Current system sys
-///
-/// # Returns
-/// [`usize`]
 pub fn stack_relative(sys: &mut Snes) -> usize {
-    todo!();
-    // let byte = mmap.fetch(sys);
-    // let bank = 0;
-    // let offset = sys.cpu.s.wrapping_add_signed(byte as i16);
-    // let result = make_address(bank, offset);
-    // return result;
+    let cpu = &mut sys.cpu;
+    let mem = &sys.mem;
+    let offset = memory::io::byte::fetch(mem, cpu);
+    let curr_s = registers_16::get_s(cpu) as usize;
+    let result = curr_s.wrapping_add_signed(offset as isize);
+    return result;
 }

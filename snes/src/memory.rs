@@ -10,15 +10,15 @@
 use crate::cartridge;
 
 pub struct Memory {
-    data: Vec<u8>,
-    cartridge_type: cartridge::CartridgeType,
-    rom_size: usize,
+    pub data: Vec<u8>,
+    pub cartridge_type: cartridge::CartridgeType,
+    pub rom_size: usize,
 }
 
 impl Default for Memory {
     fn default() -> Self {
         Self {
-            data: vec!(),
+            data: vec![],
             cartridge_type: cartridge::CartridgeType::None,
             rom_size: 0,
         }
@@ -30,7 +30,7 @@ pub mod io {
 
     /// 16 bit operations
     pub mod word {
-        use crate::cpu;
+        use crate::ricoh5a22::{self, Cpu};
 
         use super::super::*;
 
@@ -44,7 +44,7 @@ pub mod io {
         /// Write using address mapping
         pub fn write(mem: &mut Memory, address: usize, value: u16) {
             let address = map_address(address, &mem.cartridge_type);
-            let bytes = value.to_be_bytes();
+            let bytes = value.to_le_bytes();
             mem.data[address..address + 2].copy_from_slice(&bytes);
         }
 
@@ -55,11 +55,24 @@ pub mod io {
             return result;
         }
 
-        pub fn fetch(mem: &Memory, cpu: &mut cpu::Cpu) -> u16 {
-            let address = cpu::get_pc_address(cpu);
-            let result = read_nomap(mem, address);
-            let next_address = address + 2;
-            cpu::set_pc_address(cpu, next_address);
+        pub fn fetch(mem: &Memory, cpu: &mut ricoh5a22::Cpu) -> u16 {
+            let address = ricoh5a22::get_pc_address(cpu);
+            let result = read(mem, address);
+            let next_address = move_pc(address, &mem.cartridge_type, 2);
+            ricoh5a22::set_pc_address(cpu, next_address);
+            return result;
+        }
+
+        pub fn push(mem: &mut Memory, cpu: &mut Cpu, value: u16) {
+            let address = ricoh5a22::registers_16::get_s(cpu) - 1;
+            write(mem, address as usize, value);
+            ricoh5a22::registers_16::set_s(cpu, address - 1);
+        }
+
+        pub fn pop(mem: &Memory, cpu: &mut Cpu) -> u16 {
+            let address = ricoh5a22::registers_16::get_s(cpu) + 1;
+            let result = read(mem, address as usize);
+            ricoh5a22::registers_16::set_s(cpu, address + 1);
             return result;
         }
     }
@@ -67,7 +80,7 @@ pub mod io {
     /// 8 bit operations
     pub mod byte {
         use super::super::*;
-        use crate::cpu;
+        use crate::ricoh5a22;
 
         /// Read using address mapping
         pub fn read(mem: &Memory, address: usize) -> u8 {
@@ -87,11 +100,24 @@ pub mod io {
             return mem.data[address];
         }
 
-        pub fn fetch(mem: &Memory, cpu: &mut cpu::Cpu) -> u8 {
-            let address = cpu::get_pc_address(cpu);
-            let result = read_nomap(mem, address);
-            let next_address = address + 2;
-            cpu::set_pc_address(cpu, next_address);
+        pub fn fetch(mem: &Memory, cpu: &mut ricoh5a22::Cpu) -> u8 {
+            let address = ricoh5a22::get_pc_address(cpu);
+            let result = read(mem, address);
+            let next_address = move_pc(address, &mem.cartridge_type, 1);
+            ricoh5a22::set_pc_address(cpu, next_address);
+            return result;
+        }
+
+        pub fn push(mem: &mut Memory, cpu: &mut ricoh5a22::Cpu, value: u8) {
+            let address = ricoh5a22::registers_16::get_s(cpu);
+            write(mem, address as usize, value);
+            ricoh5a22::registers_16::set_s(cpu, address - 1);
+        }
+
+        pub fn pop(mem: &Memory, cpu: &mut ricoh5a22::Cpu) -> u8 {
+            let address = ricoh5a22::registers_16::get_s(cpu) + 1;
+            let result = read(mem, address as usize);
+            ricoh5a22::registers_16::set_s(cpu, address);
             return result;
         }
     }
@@ -104,10 +130,35 @@ pub fn load_binary(mem: &mut Memory, bin: &Vec<u8>) {
     mem.data[0..mem.rom_size].copy_from_slice(&bin[0..]);
 }
 
+pub fn reset_vector(mem: &Memory) -> u16 {
+    match mem.cartridge_type {
+        cartridge::CartridgeType::LoRom => {
+            let address = cartridge::lo_rom::rom::inturrupt_vectors::emulation::RES;
+            return io::word::read(mem, address);
+        }
+        _ => 0,
+    }
+}
 
 pub fn map_address(address: usize, cartridge_type: &cartridge::CartridgeType) -> usize {
     match cartridge_type {
         cartridge::CartridgeType::LoRom => return cartridge::lo_rom::map_address(address),
-        _ => return 0,
+        _ => return address,
     }
+}
+
+pub fn move_pc(address: usize, cartridge_type: &cartridge::CartridgeType, value: i16) -> usize {
+    match cartridge_type {
+        cartridge::CartridgeType::LoRom => {
+            return cartridge::lo_rom::rom::wrapped_add(address, value)
+        }
+        _ => return address + value as usize,
+    }
+}
+
+pub fn make_address(bank: u8, offset: u16) -> usize {
+    let shifted_bank = (bank as usize) << 16;
+    let offset = offset as usize;
+    let result = shifted_bank + offset;
+    return result;
 }

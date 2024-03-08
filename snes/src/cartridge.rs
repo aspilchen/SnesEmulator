@@ -1,12 +1,10 @@
 //! Cartridge Memory mapping
 
-
 pub enum CartridgeType {
     LoRom,
     HiRom,
     None,
 }
-
 
 /// LoRom Memory Map
 pub mod lo_rom {
@@ -19,7 +17,8 @@ pub mod lo_rom {
         pub const LAST_BANK: u8 = 0x7F;
         pub const BLOCK_SIZE: u16 = 0xFFFF;
         pub const MAX_SIZE: usize = 0x020000;
-        pub const BANK_SHIFT: u8 = 2;
+        pub const BEGIN: usize = 0x7E0000;
+        pub const STACK_INIT: u16 = 0x01FF;
 
         pub fn in_bounds(bank: u8, offset: u16) -> bool {
             let valid_bank = bank >= FIRST_BANK;
@@ -28,11 +27,12 @@ pub mod lo_rom {
         }
 
         pub fn map_address(address: usize) -> usize {
+            let ram_begin = super::rom::MAX_SIZE;
             let (bank, offset) = split_addr(address);
             let result = if mirror::in_bounds(bank, offset) {
-                make_address(FIRST_BANK + BANK_SHIFT, offset)
+                ram_begin + offset as usize
             } else {
-                make_address(bank + BANK_SHIFT, offset)
+                ram_begin + (address - BEGIN)
             };
             return result;
         }
@@ -84,11 +84,38 @@ pub mod lo_rom {
         }
 
         pub fn map_address(address: usize) -> usize {
-            let physical_bank = address / (BLOCK_SIZE as usize);
-            let physical_offset = address & (BLOCK_SIZE as usize);
-            let physical_address =
-            make_address(physical_bank as u8, physical_offset as u16);
-            return physical_address;
+            let (bank, offset) = split_addr(address);
+            let mapped_offset = offset - OFFSET;
+            let mapped_bank = BLOCK_SIZE * bank as u16;
+            let result = (mapped_bank as usize) + (mapped_offset as usize);
+            return result;
+        }
+
+        /// Rom addressing
+        ///
+        /// If incremented value leaves rom bounds (ex. crosses banks),
+        /// value is "wrapped" to stay within rom bounds.
+        pub fn wrapped_increment(address: usize) -> usize {
+            return wrapped_add(address, 1);
+        }
+
+        /// Rom addressing
+        ///
+        /// If incremented value leaves rom bounds (ex. crosses banks),
+        /// value is "wrapped" to stay within rom bounds.
+        pub fn wrapped_add(address: usize, value: i16) -> usize {
+            let (bank, offset) = split_addr(address);
+            let (new_offset, wrap) = offset.overflowing_add_signed(value);
+            let result = if wrap {
+                if value < 0 {
+                    make_address(bank - 1, offset)
+                } else {
+                    make_address(bank + 1, new_offset)
+                }
+            } else {
+                make_address(bank, new_offset)
+            };
+            return result;
         }
 
         pub mod mirror {
@@ -101,6 +128,24 @@ pub mod lo_rom {
                 let valid_bank = bank < LAST_BANK;
                 let valid_offset = offset >= OFFSET;
                 return valid_bank && valid_offset;
+            }
+        }
+
+        pub mod inturrupt_vectors {
+            pub mod native {
+                pub const COP: usize = 0x00FFE4;
+                pub const BRK: usize = 0x00FFE6;
+                pub const ABORT: usize = 0x00FFE8;
+                pub const NMI: usize = 0x00FFEA;
+                pub const IRQ: usize = 0x00FFEE;
+            }
+
+            pub mod emulation {
+                pub const COP: usize = 0x00FFF4;
+                pub const ABORT: usize = 0x00FFF8;
+                pub const NMI: usize = 0x00FFFA;
+                pub const RES: usize = 0x00FFFC;
+                pub const IRQ_BRK: usize = 0x00FFFE;
             }
         }
     }
@@ -120,7 +165,6 @@ pub mod lo_rom {
         return result;
     }
 }
-
 
 pub fn get_bank(address: usize) -> u8 {
     let two_bytes = 16;

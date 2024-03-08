@@ -1,4 +1,4 @@
-//! CPU State
+//! CPU
 
 use core::fmt;
 
@@ -96,7 +96,7 @@ impl Default for Cpu {
             a: [0, 0],
             x: [0, 0],
             y: [0, 0],
-            s: 0x0100,
+            s: 0x01FF,
             dbr: 0,
             d: 0,
             pbr: 0,
@@ -113,7 +113,7 @@ impl fmt::Display for Cpu {
         write!(f, "------------------------\n")?;
         write!(
             f,
-            "| A [0x{:02X}, 0x{:02X}] {:<6}|\n",
+            "| A [0x{:02X}, 0x{:02X}] {:04X}  |\n",
             self.a[0],
             self.a[1],
             registers_16::get_a(self)
@@ -136,7 +136,7 @@ impl fmt::Display for Cpu {
         write!(f, "| {:<5}{:<5}{:<5}{:<6}|\n", 'S', 'D', "DBR", "Cycle")?;
         write!(
             f,
-            "| {:<5}{:<5}{:<5}{:<6}|\n",
+            "| {:04X} {:<5}{:<5}{:<6}|\n",
             self.s, self.d, self.dbr, self.cycles
         )?;
         write!(f, "------------------------\n")?;
@@ -144,7 +144,7 @@ impl fmt::Display for Cpu {
         write!(f, "| hex    {:>02x}:{:<04x}       |\n", self.pbr, self.pc)?;
         write!(f, "------------------------\n")?;
         write!(f, "|{:>11}{:<11}|\n", "P", "")?;
-        write!(f, "|       {:08b}       |\n", self.p)?;
+        write!(f, "| {:08b}        0x{:02X} |\n", self.p, self.p)?;
         write!(f, "------------------------\n")
     }
 }
@@ -193,6 +193,10 @@ pub mod status_flags {
 
     pub fn is_set_z(cpu: &Cpu) -> bool {
         return cpu.p.intersects(Status::Z);
+    }
+
+    pub fn is_set_e(cpu: &Cpu) -> bool {
+        return cpu.e;
     }
 
     pub fn set_c(cpu: &mut Cpu, on: bool) {
@@ -259,9 +263,13 @@ pub mod status_flags {
         }
     }
 
+    pub fn set_e(cpu: &mut Cpu, on: bool) {
+        cpu.e = on;
+    }
+
     pub fn clear_status_bits(cpu: &mut Cpu, arg: u8) {
-        let bits = Status::from(!arg);
-        cpu.p &= bits;
+        let bits = Status::from(arg);
+        cpu.p &= !bits;
     }
 
     pub fn set_status_bits(cpu: &mut Cpu, arg: u8) {
@@ -290,6 +298,14 @@ pub mod registers_16 {
         cpu.d = value;
     }
 
+    pub fn set_s(cpu: &mut Cpu, value: u16) {
+        cpu.s = value;
+    }
+
+    pub fn set_pc(cpu: &mut Cpu, value: u16) {
+        cpu.pc = value;
+    }
+
     pub fn get_a(cpu: &Cpu) -> u16 {
         return u16::from_le_bytes(cpu.a);
     }
@@ -304,6 +320,14 @@ pub mod registers_16 {
 
     pub fn get_d(cpu: &Cpu) -> u16 {
         return cpu.d;
+    }
+
+    pub fn get_s(cpu: &Cpu) -> u16 {
+        return cpu.s;
+    }
+
+    pub fn get_pc(cpu: &Cpu) -> u16 {
+        return cpu.pc;
     }
 }
 
@@ -331,6 +355,10 @@ pub mod registers_8 {
         cpu.pbr = value;
     }
 
+    pub fn set_p(cpu: &mut Cpu, value: u8) {
+        cpu.p = Status::from(value);
+    }
+
     pub fn get_a(cpu: &Cpu) -> u8 {
         return cpu.a[0];
     }
@@ -349,6 +377,10 @@ pub mod registers_8 {
 
     pub fn get_pbr(cpu: &Cpu) -> u8 {
         return cpu.pbr;
+    }
+
+    pub fn get_p(cpu: &Cpu) -> u8 {
+        return u8::from(cpu.p);
     }
 }
 
@@ -400,23 +432,7 @@ pub mod ops_16 {
     }
 
     pub fn sbc(cpu: &mut Cpu, rhs: u16) -> u16 {
-        let lhs = reg::get_a(cpu);
-        let (mut result, mut carry) = lhs.overflowing_sub(rhs);
-
-        let is_carry_set = status_flags::is_set_c(cpu);
-        if is_carry_set {
-            let (tmp_result, tmp_carry) = result.overflowing_sub(1);
-            result = tmp_result;
-            carry |= tmp_carry;
-        }
-
-        let signed_overflow = ((lhs as i16) < 0 && (rhs as i16) > 0 && result > 0)
-            || ((lhs as i16) > 0 && (rhs as i16) < 0 && (result as i16) < 0);
-
-        lda(cpu, result);
-        status_flags::set_v(cpu, signed_overflow);
-        status_flags::set_c(cpu, carry);
-        return result;
+        return adc(cpu, !rhs);
     }
 
     pub fn and(cpu: &mut Cpu, rhs: u16) -> u16 {
@@ -545,6 +561,8 @@ pub mod ops_16 {
 }
 /// 8 bit operations
 pub mod ops_8 {
+    use self::status_flags::is_set_c;
+
     use super::*;
     use registers_8 as reg;
 
@@ -569,42 +587,22 @@ pub mod ops_8 {
 
     pub fn adc(cpu: &mut Cpu, rhs: u8) -> u8 {
         let lhs = reg::get_a(cpu);
-        let (mut result, mut carry) = lhs.overflowing_add(rhs);
 
-        let is_carry_set = status_flags::is_set_c(cpu);
-        if is_carry_set {
-            let (tmp_result, tmp_carry) = result.overflowing_add(1);
-            result = tmp_result;
-            carry |= tmp_carry;
-        }
+        let carry = if status_flags::is_set_c(cpu) { 1 } else { 0 };
+
+        let (result, new_carry) = lhs.overflowing_add(rhs + carry);
 
         let signed_overflow = ((lhs as i8) < 0 && (rhs as i8) < 0 && (result as i8) > 0)
             || ((lhs as i8) > 0 && (rhs as i8) > 0 && (result as i8) < 0);
 
         lda(cpu, result);
         status_flags::set_v(cpu, signed_overflow);
-        status_flags::set_c(cpu, carry);
+        status_flags::set_c(cpu, new_carry);
         return result;
     }
 
     pub fn sbc(cpu: &mut Cpu, rhs: u8) -> u8 {
-        let lhs = reg::get_a(cpu);
-        let (mut result, mut carry) = lhs.overflowing_sub(rhs);
-
-        let is_carry_set = status_flags::is_set_c(cpu);
-        if is_carry_set {
-            let (tmp_result, tmp_carry) = result.overflowing_sub(1);
-            result = tmp_result;
-            carry |= tmp_carry;
-        }
-
-        let signed_overflow = ((lhs as i8) < 0 && (rhs as i8) > 0 && result > 0)
-            || ((lhs as i8) > 0 && (rhs as i8) < 0 && (result as i8) < 0);
-
-        lda(cpu, result);
-        status_flags::set_v(cpu, signed_overflow);
-        status_flags::set_c(cpu, carry);
-        return result;
+        return adc(cpu, !rhs);
     }
 
     pub fn and(cpu: &mut Cpu, rhs: u8) -> u8 {
